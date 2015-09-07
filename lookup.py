@@ -1,5 +1,6 @@
 import utf8console
 import sys
+import kanjidic
 
 radicalsDb = dict()
 debug = False
@@ -14,7 +15,6 @@ with open("kradfile-u", "r", encoding="utf8") as f:
         splitted = line.strip().split(" ")
         kanji = splitted[0]
         currentLineRadicals = splitted[2:]
-        #TODO: currentLineRadicals da sortare
         for r in currentLineRadicals:
             if r not in radicalsDb:
                 radicalsDb[r] = set()
@@ -26,7 +26,6 @@ with open("kradfile-u", "r", encoding="utf8") as f:
 for r in filter(lambda x: len(radicalsDb[x]) == 0, list(radicalsDb.keys())):
     del radicalsDb[r]
 
-#Suck cocks
 while True:
     
     keepLooping = False
@@ -109,12 +108,23 @@ while True:
     elif command == "debug off":
         print("off") 
         debug = False
+    # elif command.startswith("get radicals"):
+        # kanji = command.split(" ")[2][0]
+        
+        # print("Radicals for", kanji + ": ", end="")
+        # for r, kList in radicalsDb.iter():
+            # if kanji in kList:
+                # print(r)
+        # print("")
     else:
         kanjis = getKanjiFromRadicals(names + [command])
         if len(kanjis) == 0:
             print("No kanji found. Ignoring radical", command)
         else:
             names.append(command)
+            
+            kanjis = sorted(kanjis, key=kanjidic.getStrokeCount)
+            
             for k in kanjis:
                 print(k, end="") #TODO: ordinare per numero di stroke
             print("")
