@@ -1,6 +1,10 @@
+from PySide.QtCore import *
+from PySide.QtGui import *
 import utf8console
 import sys
+print("Loading kanjidic")
 import kanjidic
+
 
 radicalsDb = dict()
 debug = False
@@ -89,7 +93,7 @@ def getKanjiFromRadicals(radicalNames):
     return output
 
 names = []
-while True:
+while False:
     print("> ", end="")
     sys.stdout.flush()
     command = sys.stdin.readline().strip()
@@ -129,4 +133,33 @@ while True:
                 print(k, end="") #TODO: ordinare per numero di stroke
             print("")
 
-#TODO: Gestire casi come 吸 che è formato da 及, il quale a sua volta è 乃 + 丶, senza che sia citato sotto la voce 吸
+def onTxtInputChanged():
+    kanjis = getKanjiFromRadicals(txtInput.text().split(","))
+    kanjis = sorted(kanjis, key=kanjidic.getStrokeCount)
+    txt = ""
+    for k in kanjis:
+        txt += k
+    txtOutput.setText(txt)
+    
+            
+app = QApplication(sys.argv)
+window = QWidget()
+window.setWindowTitle("Kanji practice")
+window.resize(500, 600)
+
+mainLayout = QVBoxLayout(window)
+txtInput = QLineEdit(window)
+txtInput.textChanged.connect(onTxtInputChanged)
+
+lblRadicals = QLabel(window)
+
+txtOutput = QTextEdit(window)
+txtOutput.setReadOnly(True)
+txtOutput.setStyleSheet("QTextEdit{ font-size: 70px }")
+
+mainLayout.addWidget(txtInput)
+mainLayout.addWidget(lblRadicals)
+mainLayout.addWidget(txtOutput)
+
+window.show()
+app.exec_()
