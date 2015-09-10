@@ -5,8 +5,8 @@ import sys
 print("Loading kanjidic")
 import kanjidic
 
-
 radicalsDb = dict()
+cache = dict()
 debug = False
 
 print("Loading kradfile...")
@@ -19,6 +19,7 @@ with open("kradfile-u", "r", encoding="utf8") as f:
         splitted = line.strip().split(" ")
         kanji = splitted[0]
         currentLineRadicals = splitted[2:]
+        
         for r in currentLineRadicals:
             if r not in radicalsDb:
                 radicalsDb[r] = set()
@@ -53,12 +54,12 @@ with open("radicals", "r", encoding="utf8") as f:
         splitted = line.strip().split("\t")
         wikiRadicals[splitted[0]] = splitted[1].lower()
 
-# for r in filter(lambda x: x not in radicalsDb.keys(), wikiRadicals):
-    # print(r)
-# quit()
-
 def getKanjiFromRadicalName(radicalName):
+    radicalName = radicalName.strip()
     if debug: print("Start getKanjiFromRadicalName:", radicalName)
+    if radicalName in cache:
+        if debug: print("cache hit:", radicalName)
+        return cache[radicalName]
     radicalsToFind = []
 
     for r in wikiRadicals.keys():
@@ -68,10 +69,11 @@ def getKanjiFromRadicalName(radicalName):
     if len(radicalsToFind) == 0:
         return []
         
-    print("Using radicals ", end="")
-    for r in radicalsToFind:
-        print(r, end=" ")
-    print("")
+    if debug:
+        print("Using radicals ", end="")
+        for r in radicalsToFind:
+            print(r, end=" ")
+        print("")
     
     outputKanjiList = set(radicalsDb[radicalsToFind[0]])
     
@@ -80,6 +82,7 @@ def getKanjiFromRadicalName(radicalName):
             outputKanjiList.add(x)
         
     if debug: print("End getKanjiFromRadicalName:", radicalName)
+    cache[radicalName] = outputKanjiList
     return outputKanjiList
 
     
@@ -133,33 +136,51 @@ while False:
                 print(k, end="") #TODO: ordinare per numero di stroke
             print("")
 
-def onTxtInputChanged():
-    kanjis = getKanjiFromRadicals(txtInput.text().split(","))
+def ontxtRadicalsInputChanged():
+    if debug: print("1")
+    kanjis = getKanjiFromRadicals(txtRadicalsInput.text().split(","))
+    if debug: print("2")
     kanjis = sorted(kanjis, key=kanjidic.getStrokeCount)
+    if debug: print("3")
     txt = ""
-    for k in kanjis:
+    for k in kanjis[:100]:
         txt += k
+    if len(kanjis) > 100:
+        txt += "..."
+    if debug: print("4")
     txtOutput.setText(txt)
-    
-            
+    if debug: print("5")
+
+def ontxtKanjiInputChanged():
+    txt = ""
+    for r in radicalsDb.keys():
+        if txtKanjiInput.text().strip() in radicalsDb[r]:
+            txt += r + " "
+    lblRadicals.setText(txt.strip())
+
 app = QApplication(sys.argv)
 window = QWidget()
-window.setWindowTitle("Kanji practice")
+window.setWindowTitle("Kanji lookup")
 window.resize(500, 600)
 
 mainLayout = QVBoxLayout(window)
-txtInput = QLineEdit(window)
-txtInput.textChanged.connect(onTxtInputChanged)
 
-lblRadicals = QLabel(window)
+txtRadicalsInput = QLineEdit(window)
+txtRadicalsInput.textChanged.connect(ontxtRadicalsInputChanged)
 
 txtOutput = QTextEdit(window)
 txtOutput.setReadOnly(True)
 txtOutput.setStyleSheet("QTextEdit{ font-size: 70px }")
 
-mainLayout.addWidget(txtInput)
-mainLayout.addWidget(lblRadicals)
+txtKanjiInput = QLineEdit(window)
+txtKanjiInput.textChanged.connect(ontxtKanjiInputChanged)
+
+lblRadicals = QLabel(window)
+
+mainLayout.addWidget(txtRadicalsInput)
 mainLayout.addWidget(txtOutput)
+mainLayout.addWidget(txtKanjiInput)
+mainLayout.addWidget(lblRadicals)
 
 window.show()
 app.exec_()
