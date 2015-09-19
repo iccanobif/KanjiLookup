@@ -23,9 +23,8 @@ with open("kradfile-u", "r", encoding="utf8") as f:
         for r in currentLineRadicals:
             if r not in radicalsDb:
                 radicalsDb[r] = set()
-            if kanji != r:
-                if kanji == "又": print("kanji:", kanji, "r:", r)
-                radicalsDb[r].add(kanji)
+            #if kanji != r:
+            radicalsDb[r].add(kanji)
 
 #Clean empty entries ("radicals" with no associated kanji)
 for r in filter(lambda x: len(radicalsDb[x]) == 0, list(radicalsDb.keys())):
@@ -67,7 +66,10 @@ def getKanjiFromRadicalName(radicalName):
             radicalsToFind.append(r)
             
     if len(radicalsToFind) == 0:
-        return []
+        if radicalName in radicalsDb: #if radicalName is itself a character, I just look for that
+            radicalsToFind = [radicalName] 
+        else:
+            return []
         
     if debug:
         print("Using radicals ", end="")
@@ -133,12 +135,12 @@ while False:
             kanjis = sorted(kanjis, key=kanjidic.getStrokeCount)
             
             for k in kanjis:
-                print(k, end="") #TODO: ordinare per numero di stroke
+                print(k, end="")
             print("")
 
 def ontxtRadicalsInputChanged():
     if debug: print("1")
-    kanjis = getKanjiFromRadicals(txtRadicalsInput.text().split(","))
+    kanjis = getKanjiFromRadicals(txtRadicalsInput.text().replace("、", ",").split(","))
     if debug: print("2")
     kanjis = sorted(kanjis, key=kanjidic.getStrokeCount)
     if debug: print("3")
