@@ -87,7 +87,6 @@ def getKanjiFromRadicalName(radicalName):
     cache[radicalName] = outputKanjiList
     return outputKanjiList
 
-    
 def getKanjiFromRadicals(radicalNames):
     output = getKanjiFromRadicalName(radicalNames[0])
     
@@ -97,60 +96,19 @@ def getKanjiFromRadicals(radicalNames):
         
     return output
 
-names = []
-while False:
-    print("> ", end="")
-    sys.stdout.flush()
-    command = sys.stdin.readline().strip()
-    if command == "quit": 
-        quit()
-    elif command == "": 
-        continue
-    elif command == "clear":
-        names = []
-        print("cleared")
-    elif command[0] == "-":
-        pass
-    elif command == "debug on":
-        print("on")
-        debug = True
-    elif command == "debug off":
-        print("off") 
-        debug = False
-    # elif command.startswith("get radicals"):
-        # kanji = command.split(" ")[2][0]
-        
-        # print("Radicals for", kanji + ": ", end="")
-        # for r, kList in radicalsDb.iter():
-            # if kanji in kList:
-                # print(r)
-        # print("")
-    else:
-        kanjis = getKanjiFromRadicals(names + [command])
-        if len(kanjis) == 0:
-            print("No kanji found. Ignoring radical", command)
-        else:
-            names.append(command)
-            
-            kanjis = sorted(kanjis, key=kanjidic.getStrokeCount)
-            
-            for k in kanjis:
-                print(k, end="")
-            print("")
-
 def ontxtRadicalsInputChanged():
     if debug: print("1")
     kanjis = getKanjiFromRadicals(txtRadicalsInput.text().replace("、", ",").split(","))
     if debug: print("2")
     kanjis = sorted(kanjis, key=kanjidic.getStrokeCount)
     if debug: print("3")
-    txt = ""
-    for k in kanjis[:100]:
-        txt += k
-    if len(kanjis) > 100:
-        txt += "..."
     if debug: print("4")
-    txtOutput.setText(txt)
+    lstOutput.clear()
+    lstOutput.addItems(kanjis[:100])
+    if len(kanjis) > 0:
+        lstOutput.itemAt(0, 0).setSelected(True)
+        if len(kanjis) > 100:
+            lstOutput.addItem("...")
     if debug: print("5")
 
 def ontxtKanjiInputChanged():
@@ -159,30 +117,44 @@ def ontxtKanjiInputChanged():
         if txtKanjiInput.text().strip() in radicalsDb[r]:
             txt += r + " "
     lblRadicals.setText(txt.strip())
+    
+def onlstOutputItemActivated(item):
+    txtOutputAggregation.insert(item.text())
 
 app = QApplication(sys.argv)
 window = QWidget()
 window.setWindowTitle("Kanji lookup")
 window.resize(500, 600)
-
-mainLayout = QVBoxLayout(window)
+window.setStyleSheet("QListWidget, QLineEdit#txtOutputAggregation {font-size: 70px}")
 
 txtRadicalsInput = QLineEdit(window)
 txtRadicalsInput.textChanged.connect(ontxtRadicalsInputChanged)
 
-txtOutput = QTextEdit(window)
-txtOutput.setReadOnly(True)
-txtOutput.setStyleSheet("QTextEdit{ font-size: 70px }")
+lstOutput = QListWidget(window)
+lstOutput.setFlow(QListView.LeftToRight)
+lstOutput.setWrapping(True)
+lstOutput.itemActivated.connect(onlstOutputItemActivated)
+
+txtOutputAggregation = QLineEdit(window)
+txtOutputAggregation.setStyleSheet("font-size: 70px")
 
 txtKanjiInput = QLineEdit(window)
 txtKanjiInput.textChanged.connect(ontxtKanjiInputChanged)
 
 lblRadicals = QLabel(window)
 
+#Layout
+
+mainLayout = QVBoxLayout(window)
 mainLayout.addWidget(txtRadicalsInput)
-mainLayout.addWidget(txtOutput)
-mainLayout.addWidget(txtKanjiInput)
-mainLayout.addWidget(lblRadicals)
+mainLayout.addWidget(lstOutput)
+mainLayout.addWidget(txtOutputAggregation)
+
+shitLayout = QHBoxLayout()
+shitLayout.addWidget(txtKanjiInput)
+shitLayout.addWidget(lblRadicals)
+
+mainLayout.addLayout(shitLayout)
 
 window.show()
 app.exec_()
