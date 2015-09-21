@@ -1,9 +1,5 @@
-from PySide.QtCore import *
-from PySide.QtGui import *
 import utf8console
 import sys
-print("Loading kanjidic")
-import kanjidic
 
 radicalsDb = dict()
 cache = dict()
@@ -96,65 +92,9 @@ def getKanjiFromRadicals(radicalNames):
         
     return output
     
-def kanjiCompare(k):
-    strokes = kanjidic.getStrokeCount(k)
-    return strokes * 1000000 + ord(k)
-
-def ontxtRadicalsInputChanged():
-    kanjis = getKanjiFromRadicals(txtRadicalsInput.text().replace("、", ",").split(","))
-    #kanjis = sorted(kanjis, key=kanjidic.getStrokeCount)
-    kanjis = sorted(kanjis, key=kanjiCompare)
-    lstOutput.clear()
-    lstOutput.addItems(kanjis[:100])
-    if len(kanjis) > 0:
-        lstOutput.itemAt(0, 0).setSelected(True)
-        if len(kanjis) > 100:
-            lstOutput.addItem("...")
-
-def ontxtKanjiInputChanged():
+def getRadicalsFromKanji(kanji):
     txt = ""
     for r in radicalsDb.keys():
-        if txtKanjiInput.text().strip() in radicalsDb[r]:
+        if kanji.strip() in radicalsDb[r]:
             txt += r + " "
-    lblRadicals.setText(txt.strip())
-    
-def onlstOutputItemActivated(item):
-    txtOutputAggregation.insert(item.text())
-
-app = QApplication(sys.argv)
-window = QWidget()
-window.setWindowTitle("Kanji lookup")
-window.resize(500, 600)
-window.setStyleSheet("QListWidget, QLineEdit#txtOutputAggregation {font-size: 70px}")
-
-txtRadicalsInput = QLineEdit(window)
-txtRadicalsInput.textChanged.connect(ontxtRadicalsInputChanged)
-
-lstOutput = QListWidget(window)
-lstOutput.setFlow(QListView.LeftToRight)
-lstOutput.setWrapping(True)
-lstOutput.itemActivated.connect(onlstOutputItemActivated)
-
-txtOutputAggregation = QLineEdit(window)
-txtOutputAggregation.setStyleSheet("font-size: 70px")
-
-txtKanjiInput = QLineEdit(window)
-txtKanjiInput.textChanged.connect(ontxtKanjiInputChanged)
-
-lblRadicals = QLabel(window)
-
-#Layout
-
-mainLayout = QVBoxLayout(window)
-mainLayout.addWidget(txtRadicalsInput)
-mainLayout.addWidget(lstOutput)
-mainLayout.addWidget(txtOutputAggregation)
-
-shitLayout = QHBoxLayout()
-shitLayout.addWidget(txtKanjiInput)
-shitLayout.addWidget(lblRadicals)
-
-mainLayout.addLayout(shitLayout)
-
-window.show()
-app.exec_()
+    return txt.strip()

@@ -1,3 +1,4 @@
+print("Loading kanjidic...")
 _strokeCountDictionary = dict()
 
 for line in open("kanjidic", "r", encoding="utf8").readlines():
