@@ -5,14 +5,12 @@ import sys
 import kanjidic
 import lookup
 
-def kanjiCompare(k):
-    strokes = kanjidic.getStrokeCount(k)
-    return strokes * 1000000 + ord(k)
-
 def ontxtRadicalsInputChanged():
     kanjis = lookup.getKanjiFromRadicals(txtRadicalsInput.text().replace("?", ",").split(","))
-    #kanjis = sorted(kanjis, key=kanjidic.getStrokeCount)
-    kanjis = sorted(kanjis, key=kanjiCompare)
+    # Sorting first by ord() value and then by stroke count, I ensure that kanji
+    # with the same stoke count will always be ordered in a consistent way (by ord() value)
+    kanjis = sorted(kanjis, key=ord)
+    kanjis = sorted(kanjis, key=kanjidic.getStrokeCount)
     lstOutput.clear()
     lstOutput.addItems(kanjis[:100])
     if len(kanjis) > 0:
@@ -30,7 +28,7 @@ app = QApplication(sys.argv)
 window = QWidget()
 window.setWindowTitle("Kanji lookup")
 window.resize(500, 600)
-window.setStyleSheet("QListWidget, QLineEdit#txtOutputAggregation {font-size: 70px}")
+window.setStyleSheet("QListWidget {font-size: 70px}")
 
 txtRadicalsInput = QLineEdit(window)
 txtRadicalsInput.textChanged.connect(ontxtRadicalsInputChanged)
