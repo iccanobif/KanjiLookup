@@ -95,21 +95,21 @@ def getKanjiFromRadicals(radicalNames):
         output = set(filter(lambda x: x in output, getKanjiFromRadicalName(r)))
         
     return output
+    
+def kanjiCompare(k):
+    strokes = kanjidic.getStrokeCount(k)
+    return strokes * 1000000 + ord(k)
 
 def ontxtRadicalsInputChanged():
-    if debug: print("1")
     kanjis = getKanjiFromRadicals(txtRadicalsInput.text().replace("、", ",").split(","))
-    if debug: print("2")
-    kanjis = sorted(kanjis, key=kanjidic.getStrokeCount)
-    if debug: print("3")
-    if debug: print("4")
+    #kanjis = sorted(kanjis, key=kanjidic.getStrokeCount)
+    kanjis = sorted(kanjis, key=kanjiCompare)
     lstOutput.clear()
     lstOutput.addItems(kanjis[:100])
     if len(kanjis) > 0:
         lstOutput.itemAt(0, 0).setSelected(True)
         if len(kanjis) > 100:
             lstOutput.addItem("...")
-    if debug: print("5")
 
 def ontxtKanjiInputChanged():
     txt = ""
