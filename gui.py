@@ -1,16 +1,14 @@
 from PySide.QtCore import *
 from PySide.QtGui import *
-import utf8console
 import sys
 import kanjidic
 import lookup
 
-def ontxtRadicalsInputChanged():
-    kanjis = lookup.getKanjiFromRadicals(txtRadicalsInput.text().replace("?", ",").split(","))
-    # Sorting first by ord() value and then by stroke count, I ensure that kanji
-    # with the same stoke count will always be ordered in a consistent way (by ord() value)
-    kanjis = sorted(kanjis, key=ord)
-    kanjis = sorted(kanjis, key=kanjidic.getStrokeCount)
+kanjis = None
+
+def populateList():
+    if kanjis == None: 
+        return
     lstOutput.clear()
     lstOutput.addItems(kanjis[:100])
     if len(kanjis) > 0:
@@ -18,14 +16,27 @@ def ontxtRadicalsInputChanged():
         if len(kanjis) > 100:
             lstOutput.addItem("...")
 
+def ontxtRadicalsInputChanged():
+    global kanjis
+    kanjis = lookup.getKanjiFromRadicals(txtRadicalsInput.text().replace("?", ",").split(","))
+    # Sorting first by ord() value and then by stroke count, I ensure that kanji
+    # with the same stoke count will always be ordered in a consistent way (by ord() value)
+    kanjis = sorted(kanjis, key=ord)
+    kanjis = sorted(kanjis, key=kanjidic.getStrokeCount)
+    populateList()
+
 def ontxtKanjiInputChanged():
     lblRadicals.setText(lookup.getRadicalsFromKanji(txtKanjiInput.text()))
     
 def onlstOutputItemActivated(item):
     txtOutputAggregation.insert(item.text())
-
+    
+class MainWindow(QWidget):
+    def resizeEvent(self, event):
+        populateList()
+    
 app = QApplication(sys.argv)
-window = QWidget()
+window = MainWindow()
 window.setWindowTitle("Kanji lookup")
 window.resize(500, 600)
 window.setStyleSheet("QListWidget {font-size: 70px}")
