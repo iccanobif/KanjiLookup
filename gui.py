@@ -6,15 +6,21 @@ import lookup
 
 kanjis = None
 
-def populateList():
+#TOFIX: se la finestra non è massimizzata e faccio doppio clic su "...", va in errore
+
+def populateList(fullList):
     if kanjis == None: 
         return
     lstOutput.clear()
-    lstOutput.addItems(kanjis[:100])
-    if len(kanjis) > 0:
-        lstOutput.itemAt(0, 0).setSelected(True)
+    if fullList:
+        lstOutput.addItems(kanjis)
+    else:
+        lstOutput.addItems(kanjis[:100])
         if len(kanjis) > 100:
             lstOutput.addItem("...")
+    if len(kanjis) > 0:
+        lstOutput.itemAt(0, 0).setSelected(True)
+        
 
 def ontxtRadicalsInputChanged():
     global kanjis
@@ -23,17 +29,20 @@ def ontxtRadicalsInputChanged():
     # with the same stoke count will always be ordered in a consistent way (by ord() value)
     kanjis = sorted(kanjis, key=ord)
     kanjis = sorted(kanjis, key=kanjidic.getStrokeCount)
-    populateList()
+    populateList(False)
 
 def ontxtKanjiInputChanged():
     lblRadicals.setText(lookup.getRadicalsFromKanji(txtKanjiInput.text()))
     
 def onlstOutputItemActivated(item):
-    txtOutputAggregation.insert(item.text())
+    if item.text() == "...":
+        populateList(True)
+    else:
+        txtOutputAggregation.insert(item.text())
     
 class MainWindow(QWidget):
     def resizeEvent(self, event):
-        populateList()
+        populateList(False)
     
 app = QApplication(sys.argv)
 window = MainWindow()
@@ -53,9 +62,13 @@ txtOutputAggregation = QLineEdit(window)
 txtOutputAggregation.setStyleSheet("font-size: 70px")
 
 txtKanjiInput = QLineEdit(window)
+txtKanjiInput.setStyleSheet("font-size: 40px")
 txtKanjiInput.textChanged.connect(ontxtKanjiInputChanged)
 
+
 lblRadicals = QLabel(window)
+lblRadicals.setStyleSheet("font-size: 40px")
+lblRadicals.setText("")
 
 #Layout
 
