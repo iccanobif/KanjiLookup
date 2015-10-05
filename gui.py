@@ -3,6 +3,7 @@ from PySide.QtGui import *
 import sys
 import kanjidic
 import lookup
+import edict
 
 kanjis = None
 
@@ -45,6 +46,13 @@ def onbtnShowRadicalsClicked():
     popup = Popup(window, text)
     popup.show()
     
+def onbtnShowTranslationClicked():
+    text = edict.getTranslation(txtOutputAggregation.text())
+    if text is None:
+        text = "-- not found --"
+    popup = Popup(window, text)
+    popup.show()
+    
 class MainWindow(QWidget):
     def resizeEvent(self, event):
         populateList(False)
@@ -52,14 +60,14 @@ class MainWindow(QWidget):
 class Popup(QDialog):
     def __init__(self, parent, text):
         QDialog.__init__(self, parent)
-        self.setWindowTitle("Radicals")
         self.setWindowModality(Qt.WindowModal)
         
-        lblRadicals = QLabel(window)
-        lblRadicals.setStyleSheet("font-size: 40px")
-        lblRadicals.setText(text)
+        label = QLabel(window)
+        label.setStyleSheet("font-size: 40px")
+        label.setWordWrap(True)
+        label.setText(text)
         layout = QHBoxLayout(self)
-        layout.addWidget(lblRadicals)
+        layout.addWidget(label)
         self.setLayout(layout)
         self.adjustSize()
     
@@ -84,6 +92,9 @@ txtOutputAggregation.setStyleSheet("font-size: 70px")
 btnShowRadicals = QPushButton("Show radicals...", window)
 btnShowRadicals.clicked.connect(onbtnShowRadicalsClicked)
 
+btnShowTranslation = QPushButton("Show translation...", window)
+btnShowTranslation.clicked.connect(onbtnShowTranslationClicked)
+
 #Layout
 
 mainLayout = QVBoxLayout(window)
@@ -92,7 +103,10 @@ mainLayout.addWidget(lstOutput)
 
 bottomLayout = QHBoxLayout()
 bottomLayout.addWidget(txtOutputAggregation)
-bottomLayout.addWidget(btnShowRadicals)
+buttonsLayout = QVBoxLayout()
+buttonsLayout.addWidget(btnShowRadicals)
+buttonsLayout.addWidget(btnShowTranslation)
+bottomLayout.addLayout(buttonsLayout)
 
 mainLayout.addLayout(bottomLayout)
 
