@@ -31,24 +31,44 @@ def ontxtRadicalsInputChanged():
     kanjis = sorted(kanjis, key=kanjidic.getStrokeCount)
     populateList(False)
 
-def ontxtKanjiInputChanged():
-    lblRadicals.setText(lookup.getRadicalsFromKanji(txtKanjiInput.text()))
-    
 def onlstOutputItemActivated(item):
     if item.text() == "...":
         populateList(True)
     else:
         txtOutputAggregation.insert(item.text())
+        
+def onbtnShowRadicalsClicked():
+    radicals = lookup.getRadicalsFromKanji(txtOutputAggregation.text())
+    text = ""
+    for r in radicals:
+        text += r + ": " + lookup.getRadicalName(r) + "<br/>"
+    popup = Popup(window, text)
+    popup.show()
     
 class MainWindow(QWidget):
     def resizeEvent(self, event):
         populateList(False)
+        
+class Popup(QDialog):
+    def __init__(self, parent, text):
+        QDialog.__init__(self, parent)
+        self.setWindowTitle("Radicals")
+        self.setWindowModality(Qt.WindowModal)
+        
+        lblRadicals = QLabel(window)
+        lblRadicals.setStyleSheet("font-size: 40px")
+        lblRadicals.setText(text)
+        layout = QHBoxLayout(self)
+        layout.addWidget(lblRadicals)
+        self.setLayout(layout)
+        self.adjustSize()
     
 app = QApplication(sys.argv)
 window = MainWindow()
 window.setWindowTitle("Kanji lookup")
 window.resize(500, 600)
 window.setStyleSheet("QListWidget {font-size: 70px}")
+window.setWindowFlags(Qt.WindowStaysOnTopHint)
 
 txtRadicalsInput = QLineEdit(window)
 txtRadicalsInput.textChanged.connect(ontxtRadicalsInputChanged)
@@ -61,27 +81,20 @@ lstOutput.itemActivated.connect(onlstOutputItemActivated)
 txtOutputAggregation = QLineEdit(window)
 txtOutputAggregation.setStyleSheet("font-size: 70px")
 
-txtKanjiInput = QLineEdit(window)
-txtKanjiInput.setStyleSheet("font-size: 40px")
-txtKanjiInput.textChanged.connect(ontxtKanjiInputChanged)
-
-
-lblRadicals = QLabel(window)
-lblRadicals.setStyleSheet("font-size: 40px")
-lblRadicals.setText("")
+btnShowRadicals = QPushButton("Show radicals...", window)
+btnShowRadicals.clicked.connect(onbtnShowRadicalsClicked)
 
 #Layout
 
 mainLayout = QVBoxLayout(window)
 mainLayout.addWidget(txtRadicalsInput)
 mainLayout.addWidget(lstOutput)
-mainLayout.addWidget(txtOutputAggregation)
 
-shitLayout = QHBoxLayout()
-shitLayout.addWidget(txtKanjiInput)
-shitLayout.addWidget(lblRadicals)
+bottomLayout = QHBoxLayout()
+bottomLayout.addWidget(txtOutputAggregation)
+bottomLayout.addWidget(btnShowRadicals)
 
-mainLayout.addLayout(shitLayout)
+mainLayout.addLayout(bottomLayout)
 
 window.show()
 app.exec_()

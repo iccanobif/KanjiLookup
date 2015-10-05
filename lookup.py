@@ -93,8 +93,11 @@ def getKanjiFromRadicals(radicalNames):
     return output
     
 def getRadicalsFromKanji(kanji):
-    txt = ""
+    output = []
     for r in radicalsDb.keys():
         if kanji.strip() in radicalsDb[r]:
-            txt += r + " "
-    return txt.strip()
+            output.append(r)
+    return output
+
+def getRadicalName(radical):
+    return wikiRadicals[radical]
