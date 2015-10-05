@@ -3,7 +3,8 @@ import utf8console
 
 dictionary = None
 
-# EDICT2 entry sample:
+# EDICT2 entry samples:
+# 煆焼;か焼 [かしょう] /(n,vs) calcination/calcining/EntL2819620/
 # いらっしゃい(P);いらしゃい(ik) /(int,n) (1) (hon) (used as a polite imperative) (See いらっしゃる・1) come/go/stay/(2) (See いらっしゃいませ) welcome!/(P)/EntL1000920X/
 
 def __loadDictionary():
@@ -27,7 +28,7 @@ def getTranslation(text):
     if text not in dictionary:
         return None
     output = dictionary[text].strip().strip("/")
-    output = output[output.find("/")+1:]
+    # output = output[output.find("/")+1:]
     return output[:output.rfind("/")]
     
 # print(getTranslation("水"))
