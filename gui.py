@@ -5,13 +5,18 @@ import kanjidic
 import lookup
 import edict
 
-kanjis = None
-
 #TOFIX: se la finestra non è massimizzata e faccio doppio clic su "...", va in errore
 
 def populateList(fullList):
-    if kanjis == None: 
-        return
+    kanjis = lookup.getKanjiFromRadicals(txtRadicalsInput.text().replace("?", ",").split(","))
+    # Sorting first by ord() value and then by stroke count, I ensure that kanji
+    # with the same stoke count will always be ordered in a consistent way (by ord() value)
+    kanjis = sorted(kanjis, key=ord)
+    kanjis = sorted(kanjis, key=kanjidic.getStrokeCount)
+    
+    if spnStrokeCount.value() > 0:
+        kanjis = list(filter(lambda x: kanjidic.getStrokeCount(x) == spnStrokeCount.value(), kanjis))
+    
     lstOutput.clear()
     if fullList:
         lstOutput.addItems(kanjis)
@@ -21,15 +26,9 @@ def populateList(fullList):
             lstOutput.addItem("...")
     if len(kanjis) > 0:
         lstOutput.itemAt(0, 0).setSelected(True)
-        
+
 
 def ontxtRadicalsInputChanged():
-    global kanjis
-    kanjis = lookup.getKanjiFromRadicals(txtRadicalsInput.text().replace("?", ",").split(","))
-    # Sorting first by ord() value and then by stroke count, I ensure that kanji
-    # with the same stoke count will always be ordered in a consistent way (by ord() value)
-    kanjis = sorted(kanjis, key=ord)
-    kanjis = sorted(kanjis, key=kanjidic.getStrokeCount)
     populateList(False)
 
 def onlstOutputItemActivated(item):
@@ -52,6 +51,9 @@ def onbtnShowTranslationClicked():
         text = "-- not found --"
     popup = Popup(window, text)
     popup.show()
+    
+def onspnStrokeCountValueChanged(value):
+    populateList(False)
     
 class MainWindow(QWidget):
     def resizeEvent(self, event):
@@ -86,6 +88,10 @@ lstOutput.setFlow(QListView.LeftToRight)
 lstOutput.setWrapping(True)
 lstOutput.itemActivated.connect(onlstOutputItemActivated)
 
+lblStrokeCount = QLabel("Stroke count:")
+spnStrokeCount = QSpinBox(window)
+spnStrokeCount.valueChanged.connect(onspnStrokeCountValueChanged)
+
 txtOutputAggregation = QLineEdit(window)
 txtOutputAggregation.setStyleSheet("font-size: 70px")
 
@@ -100,6 +106,12 @@ btnShowTranslation.clicked.connect(onbtnShowTranslationClicked)
 mainLayout = QVBoxLayout(window)
 mainLayout.addWidget(txtRadicalsInput)
 mainLayout.addWidget(lstOutput)
+
+strokeCountLayout = QHBoxLayout()
+strokeCountLayout.addWidget(lblStrokeCount)
+strokeCountLayout.addWidget(spnStrokeCount)
+mainLayout.addLayout(strokeCountLayout)
+lblStrokeCount.adjustSize()
 
 bottomLayout = QHBoxLayout()
 bottomLayout.addWidget(txtOutputAggregation)

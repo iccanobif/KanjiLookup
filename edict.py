@@ -16,6 +16,7 @@ def __loadDictionary():
             boundary = line.find("/")
             kanjis = line[0:boundary]
             kanjis = re.sub("\[.*?\]", "", kanjis)
+            #TODO: add the hiragana spelling as keys too
             for k in kanjis.split(";"):
                 k = re.sub("\(.*?\)", "", k)
                 dictionary[k.strip()] = line
