@@ -5,6 +5,9 @@ import kanjidic
 import lookup
 import edict
 
+#TOFIX: non funziona "show radicals" per 就
+
+
 #TOFIX: se la finestra non è massimizzata e faccio doppio clic su "...", va in errore
 
 def populateList(fullList):
@@ -88,9 +91,6 @@ lstOutput.setFlow(QListView.LeftToRight)
 lstOutput.setWrapping(True)
 lstOutput.itemActivated.connect(onlstOutputItemActivated)
 
-lblStrokeCount = QLabel("Stroke count:")
-spnStrokeCount = QSpinBox(window)
-spnStrokeCount.valueChanged.connect(onspnStrokeCountValueChanged)
 
 txtOutputAggregation = QLineEdit(window)
 txtOutputAggregation.setStyleSheet("font-size: 70px")
@@ -101,17 +101,15 @@ btnShowRadicals.clicked.connect(onbtnShowRadicalsClicked)
 btnShowTranslation = QPushButton("Show translation...", window)
 btnShowTranslation.clicked.connect(onbtnShowTranslationClicked)
 
+lblStrokeCount = QLabel("Stroke count:")
+spnStrokeCount = QSpinBox(window)
+spnStrokeCount.valueChanged.connect(onspnStrokeCountValueChanged)
+
 #Layout
 
 mainLayout = QVBoxLayout(window)
 mainLayout.addWidget(txtRadicalsInput)
 mainLayout.addWidget(lstOutput)
-
-strokeCountLayout = QHBoxLayout()
-strokeCountLayout.addWidget(lblStrokeCount)
-strokeCountLayout.addWidget(spnStrokeCount)
-mainLayout.addLayout(strokeCountLayout)
-lblStrokeCount.adjustSize()
 
 bottomLayout = QHBoxLayout()
 bottomLayout.addWidget(txtOutputAggregation)
@@ -121,6 +119,12 @@ buttonsLayout.addWidget(btnShowTranslation)
 bottomLayout.addLayout(buttonsLayout)
 
 mainLayout.addLayout(bottomLayout)
+
+strokeCountLayout = QHBoxLayout()
+strokeCountLayout.addWidget(lblStrokeCount)
+strokeCountLayout.addWidget(spnStrokeCount)
+mainLayout.addLayout(strokeCountLayout)
+lblStrokeCount.adjustSize()
 
 window.show()
 app.exec_()
