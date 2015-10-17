@@ -49,10 +49,17 @@ def onbtnShowRadicalsClicked():
     popup.show()
     
 def onbtnShowTranslationClicked():
-    text = edict.getTranslation(txtOutputAggregation.text())
-    if text is None:
+    text = ""
+    
+    translations = edict.getTranslation(txtOutputAggregation.text())
+    
+    if translations is None:
         text = "-- not found --"
-    popup = Popup(window, text)
+        
+    for t in translations:
+        text += t + "\n"
+    
+    popup = Popup(window, text.strip())
     popup.show()
     
 def onspnStrokeCountValueChanged(value):

@@ -19,7 +19,9 @@ def __loadDictionary():
             #TODO: add the hiragana spelling as keys too
             for k in kanjis.split(";"):
                 k = re.sub("\(.*?\)", "", k)
-                dictionary[k.strip()] = line
+                if k.strip() not in dictionary:
+                    dictionary[k.strip()] = []
+                dictionary[k.strip()].append(line)
 
 __loadDictionary() #comment here to do lazy loading of dictionary
 
@@ -28,8 +30,12 @@ def getTranslation(text):
         __loadDictionary()
     if text not in dictionary:
         return None
-    output = dictionary[text].strip().strip("/")
-    # output = output[output.find("/")+1:]
-    return output[:output.rfind("/")]
+    
+    output = []
+    for entry in dictionary[text]:
+        entry = entry.strip().strip("/")
+        output.append(entry[:entry.rfind("/")])
+    
+    return output
     
 # print(getTranslation("水"))
