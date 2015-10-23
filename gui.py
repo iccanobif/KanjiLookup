@@ -7,7 +7,6 @@ import edict
 
 #TOFIX: non funziona "show radicals" per 就
 
-
 #TOFIX: se la finestra non è massimizzata e faccio doppio clic su "...", va in errore
 
 def populateList(fullList):
@@ -50,7 +49,7 @@ def onbtnShowRadicalsClicked():
         text += k + ":<br/>"
         
         for r in radicals:
-            text += "    " + r + ": " + lookup.getRadicalName(r) + "<br/>"
+            text += r + ": " + lookup.getRadicalName(r) + "<br/>"
 
     popup = Popup(window, text)
     popup.show()
@@ -64,6 +63,7 @@ def onbtnShowTranslationClicked():
         text = "-- not found --"
     else:
         for t in translations:
+            if text != "": text += "--------\n"
             text += t + "\n"
     
     popup = Popup(window, text.strip())

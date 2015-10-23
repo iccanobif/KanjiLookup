@@ -15,13 +15,12 @@ def __loadDictionary():
         for line in f.readlines():
             boundary = line.find("/")
             kanjis = line[0:boundary]
-            kanjis = re.sub("\[.*?\]", "", kanjis)
-            #TODO: add the hiragana spelling as keys too
+            kanjis = re.sub("\[|\]| |\(.*?\)", ";", kanjis) #remove anything that's inside (), 
             for k in kanjis.split(";"):
-                k = re.sub("\(.*?\)", "", k)
-                if k.strip() not in dictionary:
-                    dictionary[k.strip()] = []
-                dictionary[k.strip()].append(line)
+                if k == "": continue
+                if k not in dictionary:
+                    dictionary[k] = []
+                dictionary[k].append(line)
 
 __loadDictionary() #comment here to do lazy loading of dictionary
 
