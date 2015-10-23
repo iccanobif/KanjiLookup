@@ -62,9 +62,9 @@ def onbtnShowTranslationClicked():
     
     if translations is None:
         text = "-- not found --"
-        
-    for t in translations:
-        text += t + "\n"
+    else:
+        for t in translations:
+            text += t + "\n"
     
     popup = Popup(window, text.strip())
     popup.show()
