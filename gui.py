@@ -5,10 +5,6 @@ import kanjidic
 import lookup
 import edict
 
-#TOFIX: non funziona "show radicals" per 就
-
-#TOFIX: se la finestra non è massimizzata e faccio doppio clic su "...", va in errore
-
 def populateList(fullList):
     kanjis = lookup.getKanjiFromRadicals(txtRadicalsInput.text().replace("?", ",").split(","))
     # Sorting first by ord() value and then by stroke count, I ensure that kanji
@@ -27,8 +23,8 @@ def populateList(fullList):
         if len(kanjis) > 100:
             lstOutput.addItem("...")
     if len(kanjis) > 0:
-        lstOutput.itemAt(0, 0).setSelected(True)
-
+        lstOutput.item(0).setSelected(True)
+        lstOutput.scrollToTop()
 
 def ontxtRadicalsInputChanged():
     populateList(False)
