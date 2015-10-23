@@ -41,10 +41,17 @@ def onlstOutputItemActivated(item):
         txtOutputAggregation.insert(item.text())
         
 def onbtnShowRadicalsClicked():
-    radicals = lookup.getRadicalsFromKanji(txtOutputAggregation.text())
     text = ""
-    for r in radicals:
-        text += r + ": " + lookup.getRadicalName(r) + "<br/>"
+    for k in txtOutputAggregation.text():
+        radicals = lookup.getRadicalsFromKanji(k)
+        if len(radicals) == 0: continue
+        
+        if text != "": text += "<br/>"
+        text += k + ":<br/>"
+        
+        for r in radicals:
+            text += "    " + r + ": " + lookup.getRadicalName(r) + "<br/>"
+
     popup = Popup(window, text)
     popup.show()
     
