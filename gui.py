@@ -53,10 +53,10 @@ def onbtnShowRadicalsClicked():
     popup = Popup(window, text)
     popup.show()
     
-def onbtnShowTranslationClicked():
+def getTranslations():
     text = ""
     
-    translations = edict.getTranslation(romkan.to_hiragana(txtOutputAggregation.text()))
+    translations = edict.getTranslation(romkan.to_hiragana(txtOutputAggregation.text().replace(" ", "")))
     
     if translations is None:
         text = "-- not found --"
@@ -64,8 +64,10 @@ def onbtnShowTranslationClicked():
         for t in translations:
             if text != "": text += "--------\n"
             text += t + "\n"
-    
-    popup = Popup(window, text.strip())
+    return text.strip()
+
+def onbtnShowTranslationClicked():
+    popup = Popup(window, getTranslations())
     popup.show()
     
 def onbtnShowHistoryClicked():
@@ -76,6 +78,7 @@ def onspnStrokeCountValueChanged(value):
     
 def ontxtOutputAggregationTextChanged():
     historyWindow.addEntry(txtOutputAggregation.text())
+    txtTranslations.setPlainText(getTranslations())
     
 class MainWindow(QWidget):
     def resizeEvent(self, event):
@@ -119,12 +122,17 @@ txtOutputAggregation.textChanged.connect(ontxtOutputAggregationTextChanged)
 
 btnShowTranslation = QPushButton("Show translation...", window)
 btnShowTranslation.clicked.connect(onbtnShowTranslationClicked)
+btnShowTranslation.setVisible(False)
 
 btnShowRadicals = QPushButton("Show radicals...", window)
 btnShowRadicals.clicked.connect(onbtnShowRadicalsClicked)
 
 btnShowHistory = QPushButton("History...", window)
 btnShowHistory.clicked.connect(onbtnShowHistoryClicked)
+
+txtTranslations = QTextEdit(window)
+txtTranslations.setReadOnly(True)
+txtTranslations.setStyleSheet("font-size: 25px")
 
 lblStrokeCount = QLabel("Stroke count:")
 spnStrokeCount = QSpinBox(window)
@@ -145,6 +153,8 @@ buttonsLayout.addWidget(btnShowHistory)
 bottomLayout.addLayout(buttonsLayout)
 
 mainLayout.addLayout(bottomLayout)
+
+mainLayout.addWidget(txtTranslations)
 
 strokeCountLayout = QHBoxLayout()
 strokeCountLayout.addWidget(lblStrokeCount)
