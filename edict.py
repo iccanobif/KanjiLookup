@@ -34,7 +34,7 @@ def extendWithConjugations(words, translation):
 
     newWords = list(words)
     
-    #TODO: volitive, imperative, causative
+    #TODO: imperative
     
     for w in words:
         stem = w[:-1] # technically, this is not the stem...
@@ -42,8 +42,9 @@ def extendWithConjugations(words, translation):
             newWords.append(stem + "ない") # negative
             newWords.append(stem + "た") # past
             newWords.append(stem + "て") # -te form
-            newWords.append(stem + "られる") # potential
+            newWords.append(stem + "られる") # potential + passive (they're the same for ichidan verbs...)
             newWords.append(stem + "させる") # causative
+            newWords.append(stem + "よう") # volitive
         elif type == "v5s":
             newWords.append(stem + "した") # past
             newWords.append(stem + "して") # -te form
@@ -57,16 +58,22 @@ def extendWithConjugations(words, translation):
         elif type in ["v5r", "v5t", "v5u"]:
             newWords.append(stem + "った") # past
             newWords.append(stem + "って") # -te form
-            
-                          # potential                    #negative
-        if type == "v5k": newWords.append(stem + "ける"); newWords.append(stem + "かない")
-        if type == "v5g": newWords.append(stem + "げる"); newWords.append(stem + "がない")
-        if type == "v5b": newWords.append(stem + "べる"); newWords.append(stem + "ばない")
-        if type == "v5m": newWords.append(stem + "める"); newWords.append(stem + "まない")
-        if type == "v5n": newWords.append(stem + "ねる"); newWords.append(stem + "なない")
-        if type == "v5r": newWords.append(stem + "れる"); newWords.append(stem + "らない")
-        if type == "v5t": newWords.append(stem + "てる"); newWords.append(stem + "たない") 
-        if type == "v5u": newWords.append(stem + "える"); newWords.append(stem + "わない") 
+        
+        firstNegativeKana = ""
+        
+                          # potential                    # volitive                     
+        if type == "v5k": newWords.append(stem + "ける");  newWords.append(stem + "こう"); firstNegativeKana = "か"
+        if type == "v5g": newWords.append(stem + "げる");  newWords.append(stem + "ごう"); firstNegativeKana = "が"
+        if type == "v5b": newWords.append(stem + "べる");  newWords.append(stem + "ぼう"); firstNegativeKana = "ば"
+        if type == "v5m": newWords.append(stem + "める");  newWords.append(stem + "もう"); firstNegativeKana = "ま"
+        if type == "v5n": newWords.append(stem + "ねる");  newWords.append(stem + "のう"); firstNegativeKana = "な"
+        if type == "v5r": newWords.append(stem + "れる");  newWords.append(stem + "ろう"); firstNegativeKana = "ら"
+        if type == "v5t": newWords.append(stem + "てる");  newWords.append(stem + "とう"); firstNegativeKana = "た" 
+        if type == "v5u": newWords.append(stem + "える");  newWords.append(stem + "おう"); firstNegativeKana = "わ" 
+
+        newWords.append(stem + firstNegativeKana + "ない") #negative
+        newWords.append(stem + firstNegativeKana + "せる")  #causative
+        newWords.append(stem + firstNegativeKana + "れる")  #passive
 
     return newWords
         
