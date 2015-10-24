@@ -1,5 +1,7 @@
 ﻿from PySide.QtCore import *
 from PySide.QtGui import *
+import utf8console
+import romkan
 import sys
 import kanjidic
 import lookup
@@ -54,7 +56,7 @@ def onbtnShowRadicalsClicked():
 def onbtnShowTranslationClicked():
     text = ""
     
-    translations = edict.getTranslation(txtOutputAggregation.text())
+    translations = edict.getTranslation(romkan.to_hiragana(txtOutputAggregation.text()))
     
     if translations is None:
         text = "-- not found --"
@@ -115,11 +117,11 @@ txtOutputAggregation = QLineEdit(window)
 txtOutputAggregation.setStyleSheet("font-size: 70px")
 txtOutputAggregation.textChanged.connect(ontxtOutputAggregationTextChanged)
 
-btnShowRadicals = QPushButton("Show radicals...", window)
-btnShowRadicals.clicked.connect(onbtnShowRadicalsClicked)
-
 btnShowTranslation = QPushButton("Show translation...", window)
 btnShowTranslation.clicked.connect(onbtnShowTranslationClicked)
+
+btnShowRadicals = QPushButton("Show radicals...", window)
+btnShowRadicals.clicked.connect(onbtnShowRadicalsClicked)
 
 btnShowHistory = QPushButton("History...", window)
 btnShowHistory.clicked.connect(onbtnShowHistoryClicked)
@@ -137,8 +139,8 @@ mainLayout.addWidget(lstOutput)
 bottomLayout = QHBoxLayout()
 bottomLayout.addWidget(txtOutputAggregation)
 buttonsLayout = QVBoxLayout()
-buttonsLayout.addWidget(btnShowRadicals)
 buttonsLayout.addWidget(btnShowTranslation)
+buttonsLayout.addWidget(btnShowRadicals)
 buttonsLayout.addWidget(btnShowHistory)
 bottomLayout.addLayout(buttonsLayout)
 
