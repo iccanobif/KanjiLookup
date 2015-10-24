@@ -57,7 +57,6 @@ def extendWithConjugations(words, translation):
             newWords.append(stem + "して") # -te form
             # newWords.append(stem + "している") # -te+iru form
             # newWords.append(stem + "してる") # -te+iru form
-            newWords.append(stem + "せる") # potential
         elif type in ["v5k", "v5g"]:
             newWords.append(stem + "いた") # past
             newWords.append(stem + "いて") # -te form
@@ -85,6 +84,7 @@ def extendWithConjugations(words, translation):
         if type == "v5r": newWords.append(stem + "れる");  newWords.append(stem + "ろう"); firstNegativeKana = "ら"
         if type == "v5t": newWords.append(stem + "てる");  newWords.append(stem + "とう"); firstNegativeKana = "た" 
         if type == "v5u": newWords.append(stem + "える");  newWords.append(stem + "おう"); firstNegativeKana = "わ" 
+        if type == "v5s": newWords.append(stem + "せる");  newWords.append(stem + "そう"); firstNegativeKana = "さ" 
 
         newWords.append(stem + firstNegativeKana + "ない") #negative
         newWords.append(stem + firstNegativeKana + "せる")  #causative
