@@ -1,12 +1,13 @@
-from PySide.QtCore import *
+﻿from PySide.QtCore import *
 from PySide.QtGui import *
 import sys
 import kanjidic
 import lookup
 import edict
+from historyWindow import HistoryWindow
 
 def populateList(fullList):
-    kanjis = lookup.getKanjiFromRadicals(txtRadicalsInput.text().replace("?", ",").split(","))
+    kanjis = lookup.getKanjiFromRadicals(txtRadicalsInput.text().lower().replace("、", ",").split(","))
     # Sorting first by ord() value and then by stroke count, I ensure that kanji
     # with the same stoke count will always be ordered in a consistent way (by ord() value)
     kanjis = sorted(kanjis, key=ord)
@@ -26,7 +27,7 @@ def populateList(fullList):
         lstOutput.item(0).setSelected(True)
         lstOutput.scrollToTop()
 
-def ontxtRadicalsInputChanged():
+def ontxtRadicalsTextChanged():
     populateList(False)
 
 def onlstOutputItemActivated(item):
@@ -65,8 +66,14 @@ def onbtnShowTranslationClicked():
     popup = Popup(window, text.strip())
     popup.show()
     
+def onbtnShowHistoryClicked():
+    historyWindow.show()
+    
 def onspnStrokeCountValueChanged(value):
     populateList(False)
+    
+def ontxtOutputAggregationTextChanged():
+    historyWindow.addEntry(txtOutputAggregation.text())
     
 class MainWindow(QWidget):
     def resizeEvent(self, event):
@@ -90,26 +97,32 @@ app = QApplication(sys.argv)
 window = MainWindow()
 window.setWindowTitle("Kanji lookup")
 window.resize(500, 600)
-window.setStyleSheet("QListWidget {font-size: 70px}")
+# window.setStyleSheet("QListWidget {font-size: 70px}")
 window.setWindowFlags(Qt.WindowStaysOnTopHint)
 
+historyWindow = HistoryWindow(window)
+
 txtRadicalsInput = QLineEdit(window)
-txtRadicalsInput.textChanged.connect(ontxtRadicalsInputChanged)
+txtRadicalsInput.textChanged.connect(ontxtRadicalsTextChanged)
 
 lstOutput = QListWidget(window)
 lstOutput.setFlow(QListView.LeftToRight)
 lstOutput.setWrapping(True)
 lstOutput.itemActivated.connect(onlstOutputItemActivated)
-
+lstOutput.setStyleSheet("QListWidget {font-size: 70px}")
 
 txtOutputAggregation = QLineEdit(window)
 txtOutputAggregation.setStyleSheet("font-size: 70px")
+txtOutputAggregation.textChanged.connect(ontxtOutputAggregationTextChanged)
 
 btnShowRadicals = QPushButton("Show radicals...", window)
 btnShowRadicals.clicked.connect(onbtnShowRadicalsClicked)
 
 btnShowTranslation = QPushButton("Show translation...", window)
 btnShowTranslation.clicked.connect(onbtnShowTranslationClicked)
+
+btnShowHistory = QPushButton("History...", window)
+btnShowHistory.clicked.connect(onbtnShowHistoryClicked)
 
 lblStrokeCount = QLabel("Stroke count:")
 spnStrokeCount = QSpinBox(window)
@@ -126,6 +139,7 @@ bottomLayout.addWidget(txtOutputAggregation)
 buttonsLayout = QVBoxLayout()
 buttonsLayout.addWidget(btnShowRadicals)
 buttonsLayout.addWidget(btnShowTranslation)
+buttonsLayout.addWidget(btnShowHistory)
 bottomLayout.addLayout(buttonsLayout)
 
 mainLayout.addLayout(bottomLayout)
