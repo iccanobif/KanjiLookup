@@ -33,11 +33,15 @@ def extendWithConjugations(words, translation):
     if type in ["v5", "v5aru", "v5k-s", "v5r-i", "v5u-s", "v5uru"]:
         return words # I don't know how to conjugate this stuff (yet)
 
+    
+        
     newWords = list(words)
     
     #TODO: imperative
     
     for w in words:
+        if w == "":
+            continue
         stem = w[:-1] # technically, this is not the stem...
         if type == "v1":
             newWords.append(stem + "ない") # negative
