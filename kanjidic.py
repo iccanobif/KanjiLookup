@@ -1,4 +1,7 @@
-print("Loading kanjidic...")
+import time
+
+print("Loading kanjidic...", end="", flush=True)
+_starttime = time.clock()
 _strokeCountDictionary = dict()
 
 for line in open("kanjidic", "r", encoding="utf8").readlines():
@@ -15,3 +18,5 @@ def getStrokeCount(kanji):
     if kanji not in _strokeCountDictionary:
         return 999
     return _strokeCountDictionary[kanji]
+    
+print("OK (" + str(time.clock() - _starttime) + " seconds)")

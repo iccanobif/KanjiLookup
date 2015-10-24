@@ -1,11 +1,12 @@
 import utf8console
-import sys
+import sys, time
 
 radicalsDb = dict()
 cache = dict()
 debug = False
 
-print("Loading kradfile...")
+print("Loading kradfile...", end="", flush=True)
+_starttime = time.clock()
 #LOAD KRADFILE
 with open("kradfile-u", "r", encoding="utf8") as f:
     for line in f.readlines():
@@ -39,15 +40,19 @@ while True:
                         radicalsDb[r].add(new)
     if keepLooping == 0:
         break
+print("OK (" + str(time.clock() - _starttime) + " seconds)")
 
-print("Loading kangxi radicals...")
 #LOAD KANGXI RADICALS
+print("Loading kangxi radicals...", end="", flush=True)
+_starttime = time.clock()
 wikiRadicals = {}
 with open("radicals", "r", encoding="utf8") as f:
     for line in f.readlines():
         if line[0] == "#": continue
         splitted = line.strip().split("\t")
         wikiRadicals[splitted[0]] = splitted[1].lower()
+        
+print("OK (" + str(time.clock() - _starttime) + " seconds)")
 
 def getKanjiFromRadicalName(radicalName):
     radicalName = radicalName.strip()

@@ -1,5 +1,6 @@
 import re
 import utf8console
+import time
 
 # EDICT2 entry samples:
 # 煆焼;か焼 [かしょう] /(n,vs) calcination/calcining/EntL2819620/
@@ -89,7 +90,8 @@ def extendWithConjugations(words, translation):
         
 def __loadDictionary():
     global dictionary
-    print("Loading edict2...")
+    print("Loading edict2... ", end="", flush=True)
+    starttime = time.clock()
     dictionary = dict()
     with open("edict2u", "r", encoding="utf8") as f:
         for line in f.readlines():
@@ -104,6 +106,7 @@ def __loadDictionary():
                 if k not in dictionary:
                     dictionary[k] = []
                 dictionary[k].append(line)
+    print("OK (" + str(time.clock() - starttime) + " seconds)")
 
 __loadDictionary() #comment here to do lazy loading of dictionary
 
