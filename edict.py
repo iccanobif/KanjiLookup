@@ -42,22 +42,32 @@ def extendWithConjugations(words, translation):
             newWords.append(stem + "ない") # negative
             newWords.append(stem + "た") # past
             newWords.append(stem + "て") # -te form
+            # newWords.append(stem + "ている") # -te+iru form
+            # newWords.append(stem + "てる") # -te+iru form
             newWords.append(stem + "られる") # potential + passive (they're the same for ichidan verbs...)
             newWords.append(stem + "させる") # causative
             newWords.append(stem + "よう") # volitive
         elif type == "v5s":
             newWords.append(stem + "した") # past
             newWords.append(stem + "して") # -te form
+            # newWords.append(stem + "している") # -te+iru form
+            # newWords.append(stem + "してる") # -te+iru form
             newWords.append(stem + "せる") # potential
         elif type in ["v5k", "v5g"]:
             newWords.append(stem + "いた") # past
             newWords.append(stem + "いて") # -te form
+            # newWords.append(stem + "いている") # -te+iru form
+            # newWords.append(stem + "いてる") # -te+iru form
         elif type in ["v5b", "v5m", "v5n"]:
             newWords.append(stem + "んだ") # past
             newWords.append(stem + "んで") # -te form
+            # newWords.append(stem + "んでいる") # -te+iru form
+            # newWords.append(stem + "んでる") # -te+iru form
         elif type in ["v5r", "v5t", "v5u"]:
             newWords.append(stem + "った") # past
             newWords.append(stem + "って") # -te form
+            # newWords.append(stem + "っている") # -te+iru form
+            # newWords.append(stem + "ってる") # -te+iru form
         
         firstNegativeKana = ""
         
