@@ -36,6 +36,8 @@ def onlstOutputItemActivated(item):
     if item.text() == "...":
         populateList(True)
     else:
+        if (QApplication.keyboardModifiers() & Qt.ShiftModifier) == Qt.ShiftModifier:
+            txtOutputAggregation.setText("")
         txtOutputAggregation.insert(item.text())
         
 def onbtnShowRadicalsClicked():
