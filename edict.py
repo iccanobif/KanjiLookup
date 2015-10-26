@@ -127,4 +127,15 @@ def getTranslation(text):
     
     return output
     
-# print(getTranslation("水"))
+# Always tries to make the first word as long as possible.
+# Could it be better to try out every possible split instead, and pick the one with the fewest words?
+def splitSentence(text):
+    for i in range(len(text)+1, 1, -1):
+        firstWord = text[0:i]
+        print("iteration i:", i, "firstWord:", firstWord)
+        if firstWord in dictionary:
+            return [firstWord] + splitSentence(text[i:])
+    return []
+        
+print(splitSentence("黒い一人"))
+# print(splitSentence("一人"))
