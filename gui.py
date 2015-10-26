@@ -81,8 +81,8 @@ def onspnStrokeCountValueChanged(value):
 def onbtnSplitClicked():
     text = ""
     for w in edict.splitSentence(txtOutputAggregation.text()):
-        text = w + " "
-    popup = Popup(window, text.strip())
+        text += w + "/"
+    popup = Popup(window, text.strip("/"))
     popup.show()
     
 def ontxtOutputAggregationTextChanged():
