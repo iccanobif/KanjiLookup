@@ -32,9 +32,7 @@ def extendWithConjugations(words, translation):
     type = m.group()
     if type in ["v5", "v5aru", "v5k-s", "v5r-i", "v5u-s", "v5uru"]:
         return words # I don't know how to conjugate this stuff (yet)
-
     
-        
     newWords = list(words)
     
     def add(w):
@@ -60,7 +58,7 @@ def extendWithConjugations(words, translation):
             add(stem + "した") # past
             add(stem + "して") # -te form
             # add(stem + "している") # -te+iru form
-            # newWords.append(stem + "してる") # -te+iru form
+            # add(stem + "してる") # -te+iru form
         elif type in ["v5k", "v5g"]:
             add(stem + "いた") # past
             add(stem + "いて") # -te form
@@ -134,11 +132,15 @@ def getTranslation(text):
 # Always tries to make the first word as long as possible.
 # Could it be better to try out every possible split instead, and pick the one with the fewest words?
 def splitSentence(text):
-    for i in range(len(text)+1, 1, -1):
+    print("splitSentence:", text)
+    text = text.strip()
+    if text == "":
+        return []
+    for i in range(len(text)+1, 0, -1):
         firstWord = text[0:i]
+        print("    firstWord:", firstWord)
         if firstWord in dictionary:
             return [firstWord] + splitSentence(text[i:])
-    return []
+    return [text]
         
-print(splitSentence("黒い一人"))
-# print(splitSentence("一人"))
+print(splitSentence("一人の女子高生"))

@@ -78,6 +78,13 @@ def onbtnShowHistoryClicked():
 def onspnStrokeCountValueChanged(value):
     populateList(False)
     
+def onbtnSplitClicked():
+    text = ""
+    for w in edict.splitSentence(txtOutputAggregation.text()):
+        text = w + " "
+    popup = Popup(window, text.strip())
+    popup.show()
+    
 def ontxtOutputAggregationTextChanged():
     historyWindow.addEntry(txtOutputAggregation.text())
     txtTranslations.setPlainText(getTranslations())
@@ -132,6 +139,9 @@ btnShowRadicals.clicked.connect(onbtnShowRadicalsClicked)
 btnShowHistory = QPushButton("History...", window)
 btnShowHistory.clicked.connect(onbtnShowHistoryClicked)
 
+btnSplit = QPushButton("Split...", window)
+btnSplit.clicked.connect(onbtnSplitClicked)
+
 txtTranslations = QTextEdit(window)
 txtTranslations.setReadOnly(True)
 txtTranslations.setStyleSheet("font-size: 25px")
@@ -152,6 +162,7 @@ buttonsLayout = QVBoxLayout()
 buttonsLayout.addWidget(btnShowTranslation)
 buttonsLayout.addWidget(btnShowRadicals)
 buttonsLayout.addWidget(btnShowHistory)
+buttonsLayout.addWidget(btnSplit)
 bottomLayout.addLayout(buttonsLayout)
 
 mainLayout.addLayout(bottomLayout)
