@@ -142,5 +142,37 @@ def splitSentence(text):
         if firstWord in dictionary:
             return [firstWord] + splitSentence(text[i:])
     return [text]
-        
-print(splitSentence("一人の女子高生"))
+
+# This one is still not robust against gibberish...
+def splitSentence(text):
+    print("splitSentence:", text)
+    
+    # Corner cases (no need to recurse any further)
+    if text == "": return []
+    if len(text) == 1:
+        if text in dictionary:
+            return [text]
+        else:
+            return None
+        return [text]
+
+    # Tries out every possible splitting option
+    possibleSolutions = []
+    for i in range(1, len(text)+1):
+        leftPart = text[0:i]
+        if leftPart not in dictionary:
+            continue
+        rightPart = splitSentence(text[i:])
+        if rightPart is None:
+            continue
+        possibleSolutions.append([leftPart] + rightPart)
+
+    if len(possibleSolutions) == 0:
+        return None
+
+    # Find solution with the minimum word count
+    minIdx = 0
+    for i in range(1, len(possibleSolutions)):
+        if len(possibleSolutions[i]) < len(possibleSolutions[minIdx]):
+            minIdx = i
+    return possibleSolutions[minIdx]
