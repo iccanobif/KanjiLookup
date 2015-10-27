@@ -74,10 +74,13 @@ def onbtnSplitClicked():
     popup = Popup(window, text.strip("/"))
     popup.show()
     
+def normalizeText(text):
+    return romkan.to_hiragana(text.replace(" ", ""))
+    
 def ontxtOutputAggregationTextChanged():
     historyWindow.addEntry(txtOutputAggregation.text())
     
-    input = romkan.to_hiragana(txtOutputAggregation.text().replace(" ", ""))
+    input = normalizeText(txtOutputAggregation.text())
     
     if input == "":
         txtTranslations.setPlainText("")
@@ -92,6 +95,24 @@ def ontxtOutputAggregationTextChanged():
     for w in words:
         text += "<a href='word'>word</a> ".replace("word", w)
     lblSplittedWordsList.setText(text)
+    
+def ontxtOutputAggregationSelectionChanged():
+    if txtOutputAggregation.hasSelectedText():
+        showTranslations(normalizeText(txtOutputAggregation.selectedText()))
+    else:
+        showTranslations(normalizeText(txtOutputAggregation.text()))
+
+def ontxtOutputAggregationCursorPositionChanged(oldPosition, newPosition):
+    if txtOutputAggregation.hasSelectedText(): 
+        return # Let ontxtOutputAggregationSelectionChanged() handle this
+    
+    # This stuff doesn't work: the input text (possibly in romaji) doesn't necessarily have
+    # the same length as what splitSentence() spits out...
+    # i = 0
+    # for w in edict.splitSentence(normalizeText(txtOutputAggregation.text())):
+        # if len(w) + i > newPosition:
+            # showTranslations(w)
+            # return
     
 def onlblSplittedWordsListlinkActivated(link):
     showTranslations(link)
@@ -135,6 +156,8 @@ lstOutput.setStyleSheet("QListWidget {font-size: 70px}")
 txtOutputAggregation = QLineEdit(window)
 txtOutputAggregation.setStyleSheet("font-size: 70px")
 txtOutputAggregation.textChanged.connect(ontxtOutputAggregationTextChanged)
+txtOutputAggregation.selectionChanged.connect(ontxtOutputAggregationSelectionChanged)
+txtOutputAggregation.cursorPositionChanged.connect(ontxtOutputAggregationCursorPositionChanged)
 
 btnShowRadicals = QPushButton("Show radicals...", window)
 btnShowRadicals.clicked.connect(onbtnShowRadicalsClicked)
