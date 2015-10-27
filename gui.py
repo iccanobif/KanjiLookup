@@ -55,10 +55,10 @@ def onbtnShowRadicalsClicked():
     popup = Popup(window, text)
     popup.show()
     
-def getTranslations():
+def getTranslations(word):
     text = ""
     
-    translations = edict.getTranslation(romkan.to_hiragana(txtOutputAggregation.text().replace(" ", "")))
+    translations = edict.getTranslation(word)
     
     if translations is None:
         text = "-- not found --"
@@ -68,10 +68,6 @@ def getTranslations():
             text += t + "\n"
     return text.strip()
 
-def onbtnShowTranslationClicked():
-    popup = Popup(window, getTranslations())
-    popup.show()
-    
 def onbtnShowHistoryClicked():
     historyWindow.show()
     
@@ -85,7 +81,25 @@ def onbtnSplitClicked():
     
 def ontxtOutputAggregationTextChanged():
     historyWindow.addEntry(txtOutputAggregation.text())
-    txtTranslations.setPlainText(getTranslations())
+    
+    input = romkan.to_hiragana(txtOutputAggregation.text().replace(" ", ""))
+    
+    if input == "":
+        txtTranslations.setPlainText("")
+        lblSplittedWordsList.setText("")
+        return
+    
+    words = edict.splitSentence(input)
+    
+    txtTranslations.setPlainText(getTranslations(words[0]))
+    
+    text = ""
+    for w in words:
+        text += "<a href='word'>word</a> ".replace("word", w)
+    lblSplittedWordsList.setText(text)
+    
+def onlblSplittedWordsListlinkActivated(link):
+    txtTranslations.setPlainText(getTranslations(link))
     
 class MainWindow(QWidget):
     def resizeEvent(self, event):
@@ -127,10 +141,6 @@ txtOutputAggregation = QLineEdit(window)
 txtOutputAggregation.setStyleSheet("font-size: 70px")
 txtOutputAggregation.textChanged.connect(ontxtOutputAggregationTextChanged)
 
-btnShowTranslation = QPushButton("Show translation...", window)
-btnShowTranslation.clicked.connect(onbtnShowTranslationClicked)
-btnShowTranslation.setVisible(False)
-
 btnShowRadicals = QPushButton("Show radicals...", window)
 btnShowRadicals.clicked.connect(onbtnShowRadicalsClicked)
 
@@ -139,6 +149,9 @@ btnShowHistory.clicked.connect(onbtnShowHistoryClicked)
 
 btnSplit = QPushButton("Split...", window)
 btnSplit.clicked.connect(onbtnSplitClicked)
+
+lblSplittedWordsList = QLabel(window)
+lblSplittedWordsList.linkActivated.connect(onlblSplittedWordsListlinkActivated)
 
 txtTranslations = QTextEdit(window)
 txtTranslations.setReadOnly(True)
@@ -157,13 +170,13 @@ mainLayout.addWidget(lstOutput)
 bottomLayout = QHBoxLayout()
 bottomLayout.addWidget(txtOutputAggregation)
 buttonsLayout = QVBoxLayout()
-buttonsLayout.addWidget(btnShowTranslation)
 buttonsLayout.addWidget(btnShowRadicals)
 buttonsLayout.addWidget(btnShowHistory)
 buttonsLayout.addWidget(btnSplit)
 bottomLayout.addLayout(buttonsLayout)
 
 mainLayout.addLayout(bottomLayout)
+mainLayout.addWidget(lblSplittedWordsList)
 
 mainLayout.addWidget(txtTranslations)
 

@@ -176,3 +176,26 @@ def splitSentence(text):
         if len(possibleSolutions[i]) < len(possibleSolutions[minIdx]):
             minIdx = i
     return possibleSolutions[minIdx]
+
+# Maybe this is the right one? Gibberish resistant
+# Scan the input string for the longest substring that is a real word in the dictionary.
+# Then do the same for what's on the left of said substring and what's on the right.
+# If I can't find any suitable substring, that means that the input is gibberish. Return that as if it were a single word.
+
+def splitSentence(text):
+    if len(text) == 1: return [text]
+    if text == "": return []
+
+    for length in range(len(text), 0, -1):
+        # print("length:", length)
+        for i in range(0, len(text) - length + 1):
+            # print("i:", i)
+            t = text[i:i+length]
+            # print("    " + t)
+            if t in dictionary:
+                return splitSentence(text[0:i]) + [t] + splitSentence(text[i+length:])
+    return [text]
+    
+# The following sentence still trips the splitter up: it does がそ/れ instead of が/それ (れ is the stem of ichidan verb れる)...
+# print(splitSentence("あなたがそれを気に入るのはわかっていました。"))
+# I could try to make words weighted (to make uninflected words like がそ preferable to れ), but it still wouldn't be enough
