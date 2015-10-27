@@ -55,7 +55,7 @@ def onbtnShowRadicalsClicked():
     popup = Popup(window, text)
     popup.show()
     
-def getTranslations(word):
+def showTranslations(word):
     text = ""
     
     translations = edict.getTranslation(word)
@@ -66,7 +66,8 @@ def getTranslations(word):
         for t in translations:
             if text != "": text += "--------\n"
             text += t + "\n"
-    return text.strip()
+            
+    txtTranslations.setPlainText(text.strip())
 
 def onbtnShowHistoryClicked():
     historyWindow.show()
@@ -91,7 +92,7 @@ def ontxtOutputAggregationTextChanged():
     
     words = edict.splitSentence(input)
     
-    txtTranslations.setPlainText(getTranslations(words[0]))
+    showTranslations(words[0])
     
     text = ""
     for w in words:
@@ -99,7 +100,7 @@ def ontxtOutputAggregationTextChanged():
     lblSplittedWordsList.setText(text)
     
 def onlblSplittedWordsListlinkActivated(link):
-    txtTranslations.setPlainText(getTranslations(link))
+    showTranslations(link)
     
 class MainWindow(QWidget):
     def resizeEvent(self, event):
