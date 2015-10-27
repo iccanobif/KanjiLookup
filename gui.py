@@ -56,18 +56,12 @@ def onbtnShowRadicalsClicked():
     popup.show()
     
 def showTranslations(word):
-    text = ""
-    
     translations = edict.getTranslation(word)
     
     if translations is None:
-        text = "-- not found --"
+        txtTranslations.setPlainText("-- not found --")
     else:
-        for t in translations:
-            if text != "": text += "--------\n"
-            text += t + "\n"
-            
-    txtTranslations.setPlainText(text.strip())
+        txtTranslations.setPlainText("\n--------\n".join(translations))
 
 def onbtnShowHistoryClicked():
     historyWindow.show()
