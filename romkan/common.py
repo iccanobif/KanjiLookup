@@ -573,3 +573,21 @@ def expand_consonant(str):
     str = str.lower()
     
     return sorted([mora for mora in ROMKAN.keys() if re.match("^%s.$" % str, mora)])
+
+def hiragana_to_katakana(str):
+    output = ""
+    for c in str:
+        if ord(c) >= 12353 and ord(c) <= 12435:
+            output += chr(ord(c) + 96)
+        else:
+            output += c
+    return output
+    
+def katakana_to_hiragana(str):
+    output = ""
+    for c in str:
+        if ord(c) >= 12353 + 96 and ord(c) <= 12435 + 96:
+            output += chr(ord(c) - 96)
+        else:
+            output += c
+    return output

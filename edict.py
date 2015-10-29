@@ -1,6 +1,7 @@
 import re
 import utf8console
 import time
+import romkan
 
 # EDICT2 entry samples:
 # 煆焼;か焼 [かしょう] /(n,vs) calcination/calcining/EntL2819620/
@@ -77,6 +78,8 @@ def extendWithConjugations(words, translation):
         
         firstNegativeKana = ""
         
+        #TODO: Potrei usare romkan per costruire i kana che mi servono a partire dal type (es. se v5g, converto g + o per ottenere ご )
+        
                           # potential        # volitive       # real stem                     
         if type == "v5k": add(stem + "ける"); add(stem + "こう"); add(stem + "き"); firstNegativeKana = "か"
         if type == "v5g": add(stem + "げる"); add(stem + "ごう"); add(stem + "ぎ"); firstNegativeKana = "が"
@@ -102,9 +105,10 @@ def __loadDictionary():
     with open("edict2u", "r", encoding="utf8") as f:
         for line in f.readlines():
             boundary = line.find("/")
-            kanjis = line[0:boundary]
+            kanjis = line[0:boundary].lower()
             kanjis = re.sub("\[|\]| |\(.*?\)", ";", kanjis) #remove anything that's inside ()
             kanjis = kanjis.split(";")
+            kanjis = map(romkan.katakana_to_hiragana,kanjis)
             kanjis = extendWithConjugations(kanjis, line[boundary:])
             
             for k in kanjis:
@@ -119,6 +123,8 @@ __loadDictionary() #comment here to do lazy loading of dictionary
 def getTranslation(text):
     if dictionary is None:
         __loadDictionary()
+        
+    text = romkan.katakana_to_hiragana(text.lower())
     if text not in dictionary:
         return None
     
@@ -199,3 +205,10 @@ def splitSentence(text):
 # The following sentence still trips the splitter up: it does がそ/れ instead of が/それ (れ is the stem of ichidan verb れる)...
 # print(splitSentence("あなたがそれを気に入るのはわかっていました。"))
 # I could try to make words weighted (to make uninflected words like がそ preferable to れ), but it still wouldn't be enough
+# print(splitSentence("女の子がとてもぱぷぺｐｄｐｆｄｓぱんｄねＴＰＯあねせるｄねおｄぉうううえかわいいですけど"))
+# print(splitSentence("ぱぷぺｐｄｐｆｄｓぱんｄねＴＰＯあねせるｄねおｄぉうううえ"))
+# print(splitSentence("読むことが出来ないよね"))
+# print(getTranslation("ＴＰＯ"))
+# print(getTranslation(romkan.to_hiragana("ＴＰＯ".replace(" ", ""))))
+# print(romkan.katakana_to_hiragana("ＴＰＯ") == "ＴＰＯ")
+# print(getTranslation("むずむず"))
