@@ -123,8 +123,10 @@ __loadDictionary() #comment here to do lazy loading of dictionary
 def getTranslation(text):
     if dictionary is None:
         __loadDictionary()
-        
+    
+    text = romkan.to_hiragana(text.replace(" ", ""))    
     text = romkan.katakana_to_hiragana(text.lower())
+    
     if text not in dictionary:
         return None
     

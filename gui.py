@@ -74,13 +74,10 @@ def onbtnSplitClicked():
     popup = Popup(window, text.strip("/"))
     popup.show()
     
-def normalizeText(text):
-    return romkan.to_hiragana(text.replace(" ", ""))
-    
 def ontxtOutputAggregationTextChanged():
     historyWindow.addEntry(txtOutputAggregation.text())
     
-    input = normalizeText(txtOutputAggregation.text())
+    input = txtOutputAggregation.text()
     
     if input == "":
         txtTranslations.setPlainText("")
@@ -98,9 +95,9 @@ def ontxtOutputAggregationTextChanged():
     
 def ontxtOutputAggregationSelectionChanged():
     if txtOutputAggregation.hasSelectedText():
-        showTranslations(normalizeText(txtOutputAggregation.selectedText()))
+        showTranslations(txtOutputAggregation.selectedText())
     else:
-        showTranslations(normalizeText(txtOutputAggregation.text()))
+        showTranslations(txtOutputAggregation.text())
 
 def ontxtOutputAggregationCursorPositionChanged(oldPosition, newPosition):
     if txtOutputAggregation.hasSelectedText(): 
@@ -109,7 +106,7 @@ def ontxtOutputAggregationCursorPositionChanged(oldPosition, newPosition):
     # This stuff doesn't work: the input text (possibly in romaji) doesn't necessarily have
     # the same length as what splitSentence() spits out...
     # i = 0
-    # for w in edict.splitSentence(normalizeText(txtOutputAggregation.text())):
+    # for w in edict.splitSentence(txtOutputAggregation.text()):
         # if len(w) + i > newPosition:
             # showTranslations(w)
             # return
