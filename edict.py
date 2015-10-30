@@ -91,11 +91,10 @@ def extendWithConjugations(words, translation):
         if type == "v5u": add(stem + "える"); add(stem + "おう"); add(stem + "い"); firstNegativeKana = "わ" 
         if type == "v5s": add(stem + "せる"); add(stem + "そう"); add(stem + "し"); firstNegativeKana = "さ" 
 
-        add(stem + firstNegativeKana + "ない") #negative
-        add(stem + firstNegativeKana + "せる")  #causative
-        add(stem + firstNegativeKana + "れる")  #passive
-    
-    
+        if type[0:2] == "v5":
+            add(stem + firstNegativeKana + "ない") #negative
+            add(stem + firstNegativeKana + "せる")  #causative
+            add(stem + firstNegativeKana + "れる")  #passive
 
     return newWords
         
@@ -122,12 +121,16 @@ def __loadDictionary():
 
 __loadDictionary() #comment here to do lazy loading of dictionary
 
+def normalizeInput(text):
+    text = romkan.to_hiragana(text.replace(" ", ""))    
+    text = romkan.katakana_to_hiragana(text.lower())
+    return text
+
 def getTranslation(text):
     if dictionary is None:
         __loadDictionary()
     
-    text = romkan.to_hiragana(text.replace(" ", ""))    
-    text = romkan.katakana_to_hiragana(text.lower())
+    text = normalizeInput(text)
     
     if text not in dictionary:
         return None
@@ -143,7 +146,7 @@ def getTranslation(text):
 # Could it be better to try out every possible split instead, and pick the one with the fewest words?
 def splitSentence(text):
     print("splitSentence:", text)
-    text = text.strip()
+    text = normalizeInput(text)
     if text == "":
         return []
     for i in range(len(text)+1, 0, -1):
@@ -155,6 +158,7 @@ def splitSentence(text):
 
 # This one is still not robust against gibberish...
 def splitSentence(text):
+    text = normalizeInput(text)
     print("splitSentence:", text)
     
     # Corner cases (no need to recurse any further)
@@ -193,6 +197,7 @@ def splitSentence(text):
 # If I can't find any suitable substring, that means that the input is gibberish. Return that as if it were a single word.
 
 def splitSentence(text):
+    text = normalizeInput(text)
     if len(text) == 1: return [text]
     if text == "": return []
 
