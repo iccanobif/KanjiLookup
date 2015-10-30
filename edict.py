@@ -33,7 +33,7 @@ def extendWithConjugations(words, translation):
     type = m.group()
     if type in ["v5", "v5aru", "v5k-s", "v5r-i", "v5u-s", "v5uru"]:
         return words # I don't know how to conjugate this stuff (yet)
-    
+        
     newWords = list(words)
     
     def add(w):
@@ -94,6 +94,8 @@ def extendWithConjugations(words, translation):
         add(stem + firstNegativeKana + "ない") #negative
         add(stem + firstNegativeKana + "せる")  #causative
         add(stem + firstNegativeKana + "れる")  #passive
+    
+    
 
     return newWords
         
@@ -108,7 +110,7 @@ def __loadDictionary():
             kanjis = line[0:boundary].lower()
             kanjis = re.sub("\[|\]| |\(.*?\)", ";", kanjis) #remove anything that's inside ()
             kanjis = kanjis.split(";")
-            kanjis = map(romkan.katakana_to_hiragana,kanjis)
+            kanjis = list(map(romkan.katakana_to_hiragana,kanjis))
             kanjis = extendWithConjugations(kanjis, line[boundary:])
             
             for k in kanjis:
@@ -213,4 +215,6 @@ def splitSentence(text):
 # print(getTranslation("ＴＰＯ"))
 # print(getTranslation(romkan.to_hiragana("ＴＰＯ".replace(" ", ""))))
 # print(romkan.katakana_to_hiragana("ＴＰＯ") == "ＴＰＯ")
-# print(getTranslation("むずむず"))
+
+def test():
+    print(getTranslation("hiraita"))
