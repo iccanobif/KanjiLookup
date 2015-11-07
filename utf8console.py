@@ -12,7 +12,8 @@ def _module():
     ctypes.windll.kernel32.SetConsoleCP(65001)
 
     sys.stderr = io.TextIOWrapper(sys.stderr.detach(), encoding="utf8", line_buffering=True)
-    sys.stdout = io.TextIOWrapper(sys.stdout.detach(), encoding="utf8", line_buffering=True)
+    if sys.stdout is not None:
+        sys.stdout = io.TextIOWrapper(sys.stdout.detach(), encoding="utf8", line_buffering=True)
 
     def restoreCP():
         ctypes.windll.kernel32.SetConsoleOutputCP(originalOutputCP)

@@ -1,4 +1,7 @@
-﻿from PySide.QtCore import *
+﻿if sys.executable.endswith("pythonw.exe"):
+    import sys; sys.stderr = open("errorlog.txt", "w") 
+
+from PySide.QtCore import *
 from PySide.QtGui import *
 import utf8console
 import romkan
