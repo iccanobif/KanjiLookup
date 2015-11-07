@@ -150,8 +150,8 @@ class Popup(QDialog):
 window = MainWindow()
 window.setWindowTitle("Kanji lookup")
 window.resize(500, 600)
-# window.setStyleSheet("QListWidget {font-size: 70px}")
 window.setWindowFlags(Qt.WindowStaysOnTopHint)
+window.setWindowIcon(QIcon("icon.png"))
 
 historyWindow = HistoryWindow(window)
 
