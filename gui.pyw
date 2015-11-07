@@ -1,13 +1,23 @@
-﻿if sys.executable.endswith("pythonw.exe"):
-    import sys; sys.stderr = open("errorlog.txt", "w") 
+﻿import sys
+if sys.executable.endswith("pythonw.exe"):
+    sys.stderr = open("errorlog.txt", "w") 
 
 from PySide.QtCore import *
 from PySide.QtGui import *
+
+app = QApplication(sys.argv)
+pixmap = QPixmap("splash.png")
+splashScreen = QSplashScreen(pixmap, Qt.WindowStaysOnTopHint)
+splashScreen.show()
+app.processEvents()
+
 import utf8console
 import romkan
-import sys
+splashScreen.showMessage("Loading kanjidic...")
 import kanjidic
+splashScreen.showMessage("Loading kradfile...")
 import lookup
+splashScreen.showMessage("Loading edict...")
 import edict
 from historyWindow import HistoryWindow
 
@@ -135,7 +145,7 @@ class Popup(QDialog):
         self.setLayout(layout)
         self.adjustSize()
     
-app = QApplication(sys.argv)
+
 window = MainWindow()
 window.setWindowTitle("Kanji lookup")
 window.resize(500, 600)
@@ -205,4 +215,5 @@ mainLayout.addLayout(strokeCountLayout)
 lblStrokeCount.adjustSize()
 
 window.show()
+splashScreen.finish(window)
 app.exec_()
