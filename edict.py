@@ -211,6 +211,9 @@ def splitSentence(text):
                 return splitSentence(text[0:i]) + [t] + splitSentence(text[i+length:])
     return [text]
     
+def findWordsFromFragment(text):
+    return list(sorted(filter(lambda x: x.find(text) != -1, dictionary.keys())))
+    
 # The following sentence still trips the splitter up: it does がそ/れ instead of が/それ (れ is the stem of ichidan verb れる)...
 # print(splitSentence("あなたがそれを気に入るのはわかっていました。"))
 # I could try to make words weighted (to make uninflected words like がそ preferable to れ), but it still wouldn't be enough

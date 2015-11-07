@@ -1,6 +1,6 @@
 ﻿import sys
 import os
-if True: #sys.executable.endswith("pythonw.exe"):
+if sys.executable.endswith("pythonw.exe"):
     sys.stderr = open(os.devnull, "w")
 
 from PySide.QtCore import *
@@ -83,10 +83,10 @@ def onbtnShowHistoryClicked():
 def onspnStrokeCountValueChanged(value):
     populateList(False)
     
-def onbtnSplitClicked():
-    text = "/".join(edict.splitSentence(txtOutputAggregation.text()))
-    popup = Popup(window, text.strip("/"))
-    popup.show()
+def onbtnSearchWordClicked():
+    popup = ListPopup(window)
+    popup.show(edict.findWordsFromFragment(txtOutputAggregation.text()))
+    
     
 def ontxtOutputAggregationTextChanged():
     historyWindow.addEntry(txtOutputAggregation.text())
@@ -136,6 +136,7 @@ class Popup(QDialog):
     def __init__(self, parent, text):
         QDialog.__init__(self, parent)
         self.setWindowModality(Qt.WindowModal)
+        self.setWindowTitle("Kanji lookup")
         
         label = QLabel(window)
         label.setStyleSheet("font-size: 40px")
@@ -145,8 +146,23 @@ class Popup(QDialog):
         layout.addWidget(label)
         self.setLayout(layout)
         self.adjustSize()
-    
-
+        
+class ListPopup(QDialog):
+    def __init__(self, parent):
+        QDialog.__init__(self, parent)
+        self.entries = set()
+        
+        self.list = QListWidget(self)
+        self.list.setStyleSheet("font-size: 30px")
+        layout = QHBoxLayout(self)
+        layout.addWidget(self.list)
+        self.setLayout(layout)
+        
+    def show(self, items):
+        for i in items:
+            self.list.addItem(i)
+        QDialog.show(self)
+        
 window = MainWindow()
 window.setWindowTitle("Kanji lookup")
 window.resize(500, 600)
@@ -176,8 +192,8 @@ btnShowRadicals.clicked.connect(onbtnShowRadicalsClicked)
 btnShowHistory = QPushButton("History...", window)
 btnShowHistory.clicked.connect(onbtnShowHistoryClicked)
 
-btnSplit = QPushButton("Split...", window)
-btnSplit.clicked.connect(onbtnSplitClicked)
+btnSearchWord = QPushButton("Search...", window)
+btnSearchWord.clicked.connect(onbtnSearchWordClicked)
 
 lblSplittedWordsList = QLabel(window)
 lblSplittedWordsList.linkActivated.connect(onlblSplittedWordsListlinkActivated)
@@ -201,7 +217,7 @@ bottomLayout.addWidget(txtOutputAggregation)
 buttonsLayout = QVBoxLayout()
 buttonsLayout.addWidget(btnShowRadicals)
 buttonsLayout.addWidget(btnShowHistory)
-buttonsLayout.addWidget(btnSplit)
+buttonsLayout.addWidget(btnSearchWord)
 bottomLayout.addLayout(buttonsLayout)
 
 mainLayout.addLayout(bottomLayout)
