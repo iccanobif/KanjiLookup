@@ -196,6 +196,7 @@ btnSearchWord = QPushButton("Search...", window)
 btnSearchWord.clicked.connect(onbtnSearchWordClicked)
 
 lblSplittedWordsList = QLabel(window)
+lblSplittedWordsList.setStyleSheet("font-size: 20px")
 lblSplittedWordsList.linkActivated.connect(onlblSplittedWordsListlinkActivated)
 
 txtTranslations = QTextEdit(window)
