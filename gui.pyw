@@ -84,6 +84,8 @@ def onspnStrokeCountValueChanged(value):
     populateList(False)
     
 def onbtnSearchWordClicked():
+    if txtOutputAggregation.text().strip() == "":
+        return
     popup = ListPopup(window)
     popup.show(edict.findWordsFromFragment(txtOutputAggregation.text()))
     

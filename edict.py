@@ -212,7 +212,7 @@ def splitSentence(text):
     return [text]
     
 def findWordsFromFragment(text):
-    return list(sorted(filter(lambda x: x.find(text) != -1, dictionary.keys())))
+    return list(sorted(filter(lambda x: re.search(text, x) is not None, dictionary.keys())))
     
 # The following sentence still trips the splitter up: it does がそ/れ instead of が/それ (れ is the stem of ichidan verb れる)...
 # print(splitSentence("あなたがそれを気に入るのはわかっていました。"))
