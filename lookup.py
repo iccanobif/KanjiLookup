@@ -56,9 +56,7 @@ print("OK (" + str(time.clock() - _starttime) + " seconds)")
 
 def getKanjiFromRadicalName(radicalName):
     radicalName = radicalName.strip()
-    if debug: print("Start getKanjiFromRadicalName:", radicalName)
     if radicalName in cache:
-        if debug: print("cache hit:", radicalName)
         return cache[radicalName]
     radicalsToFind = []
 
@@ -71,12 +69,6 @@ def getKanjiFromRadicalName(radicalName):
             radicalsToFind = [radicalName] 
         else:
             return []
-        
-    if debug:
-        print("Using radicals ", end="")
-        for r in radicalsToFind:
-            print(r, end=" ")
-        print("")
     
     outputKanjiList = set(radicalsDb[radicalsToFind[0]])
     
@@ -84,7 +76,6 @@ def getKanjiFromRadicalName(radicalName):
         for x in radicalsDb[r]:
             outputKanjiList.add(x)
         
-    if debug: print("End getKanjiFromRadicalName:", radicalName)
     cache[radicalName] = outputKanjiList
     return outputKanjiList
 
@@ -92,7 +83,6 @@ def getKanjiFromRadicals(radicalNames):
     output = getKanjiFromRadicalName(radicalNames[0])
     
     for r in radicalNames[1:]:
-        if debug: print("processing radical name", r)
         output = set(filter(lambda x: x in output, getKanjiFromRadicalName(r)))
         
     return output

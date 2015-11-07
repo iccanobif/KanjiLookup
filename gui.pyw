@@ -1,6 +1,7 @@
 ﻿import sys
-if sys.executable.endswith("pythonw.exe"):
-    sys.stderr = open("errorlog.txt", "w") 
+import os
+if True: #sys.executable.endswith("pythonw.exe"):
+    sys.stderr = open(os.devnull, "w")
 
 from PySide.QtCore import *
 from PySide.QtGui import *
@@ -11,7 +12,7 @@ splashScreen = QSplashScreen(pixmap, Qt.WindowStaysOnTopHint)
 splashScreen.show()
 app.processEvents()
 
-import utf8console
+# import utf8console
 import romkan
 splashScreen.showMessage("Loading kanjidic...")
 import kanjidic
