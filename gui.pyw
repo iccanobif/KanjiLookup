@@ -116,7 +116,9 @@ class MainWindow(QWidget):
                 self.lstOutput.addItem("...")
         if len(kanjis) > 0:
             self.lstOutput.item(0).setSelected(True)
-            self.lstOutput.scrollToTop()
+            if not fullList:
+                # it's true when i click the "..." item, i want the scrollbar stay as it is
+                self.lstOutput.scrollToTop()
 
     def ontxtRadicalsTextChanged(self):
         self.populateList(False)
@@ -124,6 +126,7 @@ class MainWindow(QWidget):
     def onlstOutputItemActivated(self, item):
         if item.text() == "...":
             self.populateList(True)
+            self.lstOutput.item(100).setSelected(True)
         else:
             if (QApplication.keyboardModifiers() & Qt.ShiftModifier) == Qt.ShiftModifier:
                 self.txtOutputAggregation.setText("")
