@@ -22,117 +22,188 @@ splashScreen.showMessage("Loading edict...")
 import edict
 from historyWindow import HistoryWindow
 
-def populateList(fullList):
-    kanjis = lookup.getKanjiFromRadicals(txtRadicalsInput.text().lower().replace("、", ",").split(","))
-    # Sorting first by ord() value and then by stroke count, I ensure that kanji
-    # with the same stoke count will always be ordered in a consistent way (by ord() value)
-    kanjis = sorted(kanjis, key=ord)
-    kanjis = sorted(kanjis, key=kanjidic.getStrokeCount)
-    
-    if spnStrokeCount.value() > 0:
-        kanjis = list(filter(lambda x: kanjidic.getStrokeCount(x) == spnStrokeCount.value(), kanjis))
-    
-    lstOutput.clear()
-    if fullList:
-        lstOutput.addItems(kanjis)
-    else:
-        lstOutput.addItems(kanjis[:100])
-        if len(kanjis) > 100:
-            lstOutput.addItem("...")
-    if len(kanjis) > 0:
-        lstOutput.item(0).setSelected(True)
-        lstOutput.scrollToTop()
-
-def ontxtRadicalsTextChanged():
-    populateList(False)
-
-def onlstOutputItemActivated(item):
-    if item.text() == "...":
-        populateList(True)
-    else:
-        if (QApplication.keyboardModifiers() & Qt.ShiftModifier) == Qt.ShiftModifier:
-            txtOutputAggregation.setText("")
-        txtOutputAggregation.insert(item.text())
-        
-def onbtnShowRadicalsClicked():
-    text = ""
-    for k in txtOutputAggregation.text():
-        radicals = lookup.getRadicalsFromKanji(k)
-        if len(radicals) == 0: continue
-        
-        if text != "": text += "<br/>"
-        text += k + ":<br/>"
-        
-        for r in radicals:
-            text += r + ": " + lookup.getRadicalName(r) + "<br/>"
-
-    popup = Popup(window, text)
-    popup.show()
-    
-def showTranslations(word):
-    translations = edict.getTranslation(word)
-    
-    if translations is None:
-        txtTranslations.setPlainText("-- not found --")
-    else:
-        txtTranslations.setPlainText("\n--------\n".join(translations))
-
-def onbtnShowHistoryClicked():
-    historyWindow.show()
-    
-def onspnStrokeCountValueChanged(value):
-    populateList(False)
-    
-def onbtnSearchWordClicked():
-    if txtOutputAggregation.text().strip() == "":
-        return
-    popup = ListPopup(window)
-    popup.show(edict.findWordsFromFragment(txtOutputAggregation.text()))
-    
-    
-def ontxtOutputAggregationTextChanged():
-    historyWindow.addEntry(txtOutputAggregation.text())
-    
-    input = txtOutputAggregation.text()
-    
-    if input == "":
-        txtTranslations.setPlainText("")
-        lblSplittedWordsList.setText("")
-        return
-    
-    words = edict.splitSentence(input)
-    
-    showTranslations(words[0])
-    
-    text = ""
-    for w in words:
-        text += "<a href='word'>word</a> ".replace("word", w)
-    lblSplittedWordsList.setText(text)
-    
-def ontxtOutputAggregationSelectionChanged():
-    if txtOutputAggregation.hasSelectedText():
-        showTranslations(txtOutputAggregation.selectedText())
-    else:
-        showTranslations(txtOutputAggregation.text())
-
-def ontxtOutputAggregationCursorPositionChanged(oldPosition, newPosition):
-    if txtOutputAggregation.hasSelectedText(): 
-        return # Let ontxtOutputAggregationSelectionChanged() handle this
-    
-    # This stuff doesn't work: the input text (possibly in romaji) doesn't necessarily have
-    # the same length as what splitSentence() spits out...
-    # i = 0
-    # for w in edict.splitSentence(txtOutputAggregation.text()):
-        # if len(w) + i > newPosition:
-            # showTranslations(w)
-            # return
-    
-def onlblSplittedWordsListlinkActivated(link):
-    showTranslations(link)
-    
 class MainWindow(QWidget):
+
+    def __init__(self):
+        QWidget.__init__(self)
+        self.setWindowTitle("Kanji lookup")
+        self.resize(500, 600)
+        self.setWindowFlags(Qt.WindowStaysOnTopHint)
+        self.setWindowIcon(QIcon("icon.png"))
+
+        self.historyWindow = HistoryWindow(self)
+
+        self.txtRadicalsInput = QLineEdit(self)
+        self.txtRadicalsInput.textChanged.connect(self.ontxtRadicalsTextChanged)
+
+        self.lstOutput = QListWidget(self)
+        self.lstOutput.setFlow(QListView.LeftToRight)
+        self.lstOutput.setWrapping(True)
+        self.lstOutput.itemActivated.connect(self.onlstOutputItemActivated)
+        self.lstOutput.setStyleSheet("QListWidget {font-size: 70px}")
+
+        self.txtOutputAggregation = QLineEdit(self)
+        self.txtOutputAggregation.setStyleSheet("font-size: 70px")
+        self.txtOutputAggregation.textChanged.connect(self.ontxtOutputAggregationTextChanged)
+        self.txtOutputAggregation.selectionChanged.connect(self.ontxtOutputAggregationSelectionChanged)
+        self.txtOutputAggregation.cursorPositionChanged.connect(self.ontxtOutputAggregationCursorPositionChanged)
+
+        self.btnShowRadicals = QPushButton("Show radicals...", self)
+        self.btnShowRadicals.clicked.connect(self.onbtnShowRadicalsClicked)
+
+        self.btnShowHistory = QPushButton("History...", self)
+        self.btnShowHistory.clicked.connect(self.onbtnShowHistoryClicked)
+
+        self.btnSearchWord = QPushButton("Search...", self)
+        self.btnSearchWord.clicked.connect(self.onbtnSearchWordClicked)
+
+        self.lblSplittedWordsList = QLabel(self)
+        self.lblSplittedWordsList.setStyleSheet("font-size: 20px")
+        self.lblSplittedWordsList.linkActivated.connect(self.onlblSplittedWordsListlinkActivated)
+
+        self.txtTranslations = QTextEdit(self)
+        self.txtTranslations.setReadOnly(True)
+        self.txtTranslations.setStyleSheet("font-size: 25px")
+
+        self.lblStrokeCount = QLabel("Stroke count:")
+        self.spnStrokeCount = QSpinBox(self)
+        self.spnStrokeCount.valueChanged.connect(self.onspnStrokeCountValueChanged)
+
+        #Layout
+
+        self.mainLayout = QVBoxLayout(self)
+        self.mainLayout.addWidget(self.txtRadicalsInput)
+        self.mainLayout.addWidget(self.lstOutput)
+
+        self.bottomLayout = QHBoxLayout()
+        self.bottomLayout.addWidget(self.txtOutputAggregation)
+        self.buttonsLayout = QVBoxLayout()
+        self.buttonsLayout.addWidget(self.btnShowRadicals)
+        self.buttonsLayout.addWidget(self.btnShowHistory)
+        self.buttonsLayout.addWidget(self.btnSearchWord)
+        self.bottomLayout.addLayout(self.buttonsLayout)
+
+        self.mainLayout.addLayout(self.bottomLayout)
+        self.mainLayout.addWidget(self.lblSplittedWordsList)
+
+        self.mainLayout.addWidget(self.txtTranslations)
+
+        self.strokeCountLayout = QHBoxLayout()
+        self.strokeCountLayout.addWidget(self.lblStrokeCount)
+        self.strokeCountLayout.addWidget(self.spnStrokeCount)
+        self.mainLayout.addLayout(self.strokeCountLayout)
+        self.lblStrokeCount.adjustSize()
+        
     def resizeEvent(self, event):
-        populateList(False)
+        self.populateList(False)
+        
+    def populateList(self, fullList):
+        kanjis = lookup.getKanjiFromRadicals(self.txtRadicalsInput.text().lower().replace("、", ",").split(","))
+        # Sorting first by ord() value and then by stroke count, I ensure that kanji
+        # with the same stoke count will always be ordered in a consistent way (by ord() value)
+        kanjis = sorted(kanjis, key=ord)
+        kanjis = sorted(kanjis, key=kanjidic.getStrokeCount)
+        
+        if self.spnStrokeCount.value() > 0:
+            kanjis = list(filter(lambda x: kanjidic.getStrokeCount(x) == self.spnStrokeCount.value(), kanjis))
+        
+        self.lstOutput.clear()
+        if fullList:
+            self.lstOutput.addItems(kanjis)
+        else:
+            self.lstOutput.addItems(kanjis[:100])
+            if len(kanjis) > 100:
+                self.lstOutput.addItem("...")
+        if len(kanjis) > 0:
+            self.lstOutput.item(0).setSelected(True)
+            self.lstOutput.scrollToTop()
+
+    def ontxtRadicalsTextChanged(self):
+        self.populateList(False)
+
+    def onlstOutputItemActivated(self, item):
+        if item.text() == "...":
+            self.populateList(True)
+        else:
+            if (QApplication.keyboardModifiers() & Qt.ShiftModifier) == Qt.ShiftModifier:
+                self.txtOutputAggregation.setText("")
+            self.txtOutputAggregation.insert(item.text())
+            
+    def onbtnShowRadicalsClicked(self):
+        text = ""
+        for k in self.txtOutputAggregation.text():
+            radicals = lookup.getRadicalsFromKanji(k)
+            if len(radicals) == 0: continue
+            
+            if text != "": text += "<br/>"
+            text += k + ":<br/>"
+            
+            for r in radicals:
+                text += r + ": " + lookup.getRadicalName(r) + "<br/>"
+
+        popup = Popup(self, text)
+        popup.show()
+        
+    def showTranslations(self, word):
+        translations = edict.getTranslation(word)
+        
+        if translations is None:
+            self.txtTranslations.setPlainText("-- not found --")
+        else:
+            self.txtTranslations.setPlainText("\n--------\n".join(translations))
+
+    def onbtnShowHistoryClicked(self):
+        self.historyWindow.show()
+        
+    def onspnStrokeCountValueChanged(self, value):
+        self.populateList(False)
+        
+    def onbtnSearchWordClicked(self):
+        if self.txtOutputAggregation.text().strip() == "":
+            return
+        popup = ListPopup(self)
+        popup.show(edict.findWordsFromFragment(self.txtOutputAggregation.text()))
+        
+        
+    def ontxtOutputAggregationTextChanged(self):
+        self.historyWindow.addEntry(self.txtOutputAggregation.text())
+        
+        input = self.txtOutputAggregation.text()
+        
+        if input == "":
+            self.txtTranslations.setPlainText("")
+            self.lblSplittedWordsList.setText("")
+            return
+        
+        words = edict.splitSentence(input)
+        
+        self.showTranslations(words[0])
+        
+        text = ""
+        for w in words:
+            text += "<a href='word'>word</a> ".replace("word", w)
+        self.lblSplittedWordsList.setText(text)
+        
+    def ontxtOutputAggregationSelectionChanged(self):
+        if self.txtOutputAggregation.hasSelectedText():
+            self.showTranslations(self.txtOutputAggregation.selectedText())
+        else:
+            self.showTranslations(self.txtOutputAggregation.text())
+
+    def ontxtOutputAggregationCursorPositionChanged(self, oldPosition, newPosition):
+        if self.txtOutputAggregation.hasSelectedText(): 
+            return # Let ontxtOutputAggregationSelectionChanged() handle this
+        
+        # This stuff doesn't work: the input text (possibly in romaji) doesn't necessarily have
+        # the same length as what splitSentence() spits out...
+        # i = 0
+        # for w in edict.splitSentence(txtOutputAggregation.text()):
+            # if len(w) + i > newPosition:
+                # showTranslations(w)
+                # return
+        
+    def onlblSplittedWordsListlinkActivated(self, link):
+        self.showTranslations(link)
         
 class Popup(QDialog):
     def __init__(self, parent, text):
@@ -140,7 +211,7 @@ class Popup(QDialog):
         self.setWindowModality(Qt.WindowModal)
         self.setWindowTitle("Kanji lookup")
         
-        label = QLabel(window)
+        label = QLabel(self)
         label.setStyleSheet("font-size: 40px")
         label.setWordWrap(True)
         label.setText(text)
@@ -164,76 +235,8 @@ class ListPopup(QDialog):
         for i in items:
             self.list.addItem(i)
         QDialog.show(self)
-        
+
 window = MainWindow()
-window.setWindowTitle("Kanji lookup")
-window.resize(500, 600)
-window.setWindowFlags(Qt.WindowStaysOnTopHint)
-window.setWindowIcon(QIcon("icon.png"))
-
-historyWindow = HistoryWindow(window)
-
-txtRadicalsInput = QLineEdit(window)
-txtRadicalsInput.textChanged.connect(ontxtRadicalsTextChanged)
-
-lstOutput = QListWidget(window)
-lstOutput.setFlow(QListView.LeftToRight)
-lstOutput.setWrapping(True)
-lstOutput.itemActivated.connect(onlstOutputItemActivated)
-lstOutput.setStyleSheet("QListWidget {font-size: 70px}")
-
-txtOutputAggregation = QLineEdit(window)
-txtOutputAggregation.setStyleSheet("font-size: 70px")
-txtOutputAggregation.textChanged.connect(ontxtOutputAggregationTextChanged)
-txtOutputAggregation.selectionChanged.connect(ontxtOutputAggregationSelectionChanged)
-txtOutputAggregation.cursorPositionChanged.connect(ontxtOutputAggregationCursorPositionChanged)
-
-btnShowRadicals = QPushButton("Show radicals...", window)
-btnShowRadicals.clicked.connect(onbtnShowRadicalsClicked)
-
-btnShowHistory = QPushButton("History...", window)
-btnShowHistory.clicked.connect(onbtnShowHistoryClicked)
-
-btnSearchWord = QPushButton("Search...", window)
-btnSearchWord.clicked.connect(onbtnSearchWordClicked)
-
-lblSplittedWordsList = QLabel(window)
-lblSplittedWordsList.setStyleSheet("font-size: 20px")
-lblSplittedWordsList.linkActivated.connect(onlblSplittedWordsListlinkActivated)
-
-txtTranslations = QTextEdit(window)
-txtTranslations.setReadOnly(True)
-txtTranslations.setStyleSheet("font-size: 25px")
-
-lblStrokeCount = QLabel("Stroke count:")
-spnStrokeCount = QSpinBox(window)
-spnStrokeCount.valueChanged.connect(onspnStrokeCountValueChanged)
-
-#Layout
-
-mainLayout = QVBoxLayout(window)
-mainLayout.addWidget(txtRadicalsInput)
-mainLayout.addWidget(lstOutput)
-
-bottomLayout = QHBoxLayout()
-bottomLayout.addWidget(txtOutputAggregation)
-buttonsLayout = QVBoxLayout()
-buttonsLayout.addWidget(btnShowRadicals)
-buttonsLayout.addWidget(btnShowHistory)
-buttonsLayout.addWidget(btnSearchWord)
-bottomLayout.addLayout(buttonsLayout)
-
-mainLayout.addLayout(bottomLayout)
-mainLayout.addWidget(lblSplittedWordsList)
-
-mainLayout.addWidget(txtTranslations)
-
-strokeCountLayout = QHBoxLayout()
-strokeCountLayout.addWidget(lblStrokeCount)
-strokeCountLayout.addWidget(spnStrokeCount)
-mainLayout.addLayout(strokeCountLayout)
-lblStrokeCount.adjustSize()
-
 window.show()
 splashScreen.finish(window)
 app.exec_()
