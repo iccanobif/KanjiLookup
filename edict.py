@@ -32,7 +32,7 @@ def extendWithConjugations(words, translation):
     if m is None:
         return words
     type = m.group()
-    if type in ["v5", "v5aru", "v5k-s", "v5r-i", "v5u-s", "v5uru"]:
+    if type in ["v5", "v5aru", "v5r-i", "v5u-s", "v5uru"]:
         return words # I don't know how to conjugate this stuff (yet)
         
     newWords = list(words)
@@ -63,6 +63,9 @@ def extendWithConjugations(words, translation):
         elif type in ["v5k", "v5g"]:
             add("いた") # past
             add("いて") # -te form
+        elif type == "v5k-s": # for verbs ending in 行く
+            add("った") # past
+            add("いて") # -te form
         elif type in ["v5b", "v5m", "v5n"]:
             add("んだ") # past
             add("んで") # -te form
@@ -73,16 +76,16 @@ def extendWithConjugations(words, translation):
         firstNegativeKana = ""
         stemKana = ""
         
-                          # potential # volitive # stem    
-        if type == "v5k": add("ける"); add("こう"); stemKana = "き"; firstNegativeKana = "か"
-        if type == "v5g": add("げる"); add("ごう"); stemKana = "ぎ"; firstNegativeKana = "が"
-        if type == "v5b": add("べる"); add("ぼう"); stemKana = "び"; firstNegativeKana = "ば"
-        if type == "v5m": add("める"); add("もう"); stemKana = "み"; firstNegativeKana = "ま"
-        if type == "v5n": add("ねる"); add("のう"); stemKana = "に"; firstNegativeKana = "な"
-        if type == "v5r": add("れる"); add("ろう"); stemKana = "り"; firstNegativeKana = "ら"
-        if type == "v5t": add("てる"); add("とう"); stemKana = "ち"; firstNegativeKana = "た" 
-        if type == "v5u": add("える"); add("おう"); stemKana = "い"; firstNegativeKana = "わ" 
-        if type == "v5s": add("せる"); add("そう"); stemKana = "し"; firstNegativeKana = "さ" 
+                                     # potential # volitive   
+        if type in ["v5k", "v5k-s"]: add("ける"); add("こう"); stemKana = "き"; firstNegativeKana = "か"
+        if type == "v5g":            add("げる"); add("ごう"); stemKana = "ぎ"; firstNegativeKana = "が"
+        if type == "v5b":            add("べる"); add("ぼう"); stemKana = "び"; firstNegativeKana = "ば"
+        if type == "v5m":            add("める"); add("もう"); stemKana = "み"; firstNegativeKana = "ま"
+        if type == "v5n":            add("ねる"); add("のう"); stemKana = "に"; firstNegativeKana = "な"
+        if type == "v5r":            add("れる"); add("ろう"); stemKana = "り"; firstNegativeKana = "ら"
+        if type == "v5t":            add("てる"); add("とう"); stemKana = "ち"; firstNegativeKana = "た" 
+        if type == "v5u":            add("える"); add("おう"); stemKana = "い"; firstNegativeKana = "わ" 
+        if type == "v5s":            add("せる"); add("そう"); stemKana = "し"; firstNegativeKana = "さ" 
 
         if type[0:2] == "v5":
             add(firstNegativeKana + "ない")  # negative
@@ -212,9 +215,11 @@ def findWordsFromFragment(text):
 # The following sentence still trips the splitter up: it does がそ/れ instead of が/それ (れ is the stem of ichidan verb れる)...
 # print(splitSentence("あなたがそれを気に入るのはわかっていました。"))
 
-
 if __name__ == '__main__':
     print(getTranslation("hiraita"))
-    print(getTranslation("行き"))
+    print(getTranslation("泣き"))
     print(getTranslation("食べた"))
     print(getTranslation("泣きたい"))
+    print(getTranslation("行った"))
+    print(getTranslation("行かない"))
+    
