@@ -79,7 +79,8 @@ def getKanjiFromRadicalName(radicalName):
     cache[radicalName] = outputKanjiList
     return outputKanjiList
 
-def getKanjiFromRadicals(radicalNames):
+# radicalNames must be a list() of names of radicals
+def getKanjiFromRadicals(radicalNames): 
     output = getKanjiFromRadicalName(radicalNames[0])
     
     for r in radicalNames[1:]:

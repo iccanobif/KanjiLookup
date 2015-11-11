@@ -2,25 +2,26 @@ import re
 import utf8console
 import time
 import romkan
+import lookup
 
 # EDICT2 entry samples:
 # 煆焼;か焼 [かしょう] /(n,vs) calcination/calcining/EntL2819620/
 # いらっしゃい(P);いらしゃい(ik) /(int,n) (1) (hon) (used as a polite imperative) (See いらっしゃる・1) come/go/stay/(2) (See いらっしゃいませ) welcome!/(P)/EntL1000920X/
 
-# v1 Ichidan verb 
+# v1 Ichidan verb <<-- OK
 # v5 (godan) verb (not completely classified)  <<--- i'll pretend it's not a verb
-# v5aru (godan) verb - -aru special class 
-# v5b (godan) verb with `bu' ending 
-# v5g (godan) verb with `gu' ending 
-# v5k (godan) verb with `ku' ending 
-# v5k-s (godan) verb - iku/yuku special class 
-# v5m (godan) verb with `mu' ending 
-# v5n (godan) verb with `nu' ending 
-# v5r (godan) verb with `ru' ending 
-# v5r-i (godan) verb with `ru' ending (irregular verb) 
-# v5s (godan) verb with `su' ending 
-# v5t (godan) verb with `tsu' ending 
-# v5u (godan) verb with `u' ending 
+# v5aru (godan) verb - -aru special class (stuff like 下さる and いらっしゃる)  <<--- no need to conjugate these, i guess
+# v5b (godan) verb with `bu' ending <<-- OK
+# v5g (godan) verb with `gu' ending <<-- OK
+# v5k (godan) verb with `ku' ending <<-- OK
+# v5k-s (godan) verb - iku/yuku special class <<-- OK
+# v5m (godan) verb with `mu' ending <<-- OK
+# v5n (godan) verb with `nu' ending <<-- OK
+# v5r (godan) verb with `ru' ending <<-- OK
+# v5r-i (godan) verb with `ru' ending (irregular verb)  <-- basically, stuff that ends in ある
+# v5s (godan) verb with `su' ending <<-- OK
+# v5t (godan) verb with `tsu' ending <<-- OK
+# v5u (godan) verb with `u' ending <<-- OK
 # v5u-s (godan) verb with `u' ending (special class) 
 # v5uru (godan) verb - uru old class verb (old form of Eru) 
 
@@ -200,17 +201,18 @@ def splitSentence(text):
     if text == "": return []
 
     for length in range(len(text), 0, -1):
-        # print("length:", length)
         for i in range(0, len(text) - length + 1):
-            # print("i:", i)
             t = text[i:i+length]
-            # print("    " + t)
             if t in dictionary:
                 return splitSentence(text[0:i]) + [t] + splitSentence(text[i+length:])
     return [text]
     
 def findWordsFromFragment(text):
-    return list(sorted(filter(lambda x: re.search(text, x) is not None, dictionary.keys())))
+    # Replace lists of radical names (ex. "{woman,roof}") with the actual possible kanjis
+    for radicalList in re.findall("{.*?}", text):
+        splitted = radicalList[1:-1].lower().replace("、", ",").split(",")
+        text = text.replace(radicalList, "[" + "|".join(lookup.getKanjiFromRadicals(splitted)) + "]")
+    return list(sorted(filter(lambda x: re.search("^" + text + "$", x) is not None, dictionary.keys())))
     
 # The following sentence still trips the splitter up: it does がそ/れ instead of が/それ (れ is the stem of ichidan verb れる)...
 # print(splitSentence("あなたがそれを気に入るのはわかっていました。"))
@@ -222,4 +224,5 @@ if __name__ == '__main__':
     print(getTranslation("泣きたい"))
     print(getTranslation("行った"))
     print(getTranslation("行かない"))
+    print(findWordsFromFragment("会{eye,legs}"))
     
