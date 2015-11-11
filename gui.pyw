@@ -164,8 +164,15 @@ class MainWindow(QWidget):
     def onbtnSearchWordClicked(self):
         if self.txtOutputAggregation.text().strip() == "":
             return
+            
+        text = ""
+        if self.txtOutputAggregation.hasSelectedText():
+            text = self.txtOutputAggregation.selectedText()
+        else:
+            text = self.txtOutputAggregation.text()
+
         popup = ListPopup(self)
-        popup.show(edict.findWordsFromFragment(self.txtOutputAggregation.text()))
+        popup.show(edict.findWordsFromFragment(text))
         
         
     def ontxtOutputAggregationTextChanged(self):
