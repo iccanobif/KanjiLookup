@@ -27,6 +27,7 @@ import romkan
 dictionary = None
 
 def extendWithConjugations(words, translation):
+
     m = re.search("v1|v5aru|v5b|v5g|v5k-s|v5k|v5m|v5n|v5r-i|v5r|v5s|v5t|v5u-s|v5uru|v5u|v5", translation)
     if m is None:
         return words
@@ -36,65 +37,59 @@ def extendWithConjugations(words, translation):
         
     newWords = list(words)
     
-    def add(w):
-        newWords.append(w)
     
     #TODO: imperative
     
     for w in words:
         if w == "":
             continue
-        stem = w[:-1] # technically, this is not the stem...
+        
+        root = w[:-1]
+        def add(w):
+            newWords.append(root + w)
+
         if type == "v1":
-            add(stem) # stem
-            add(stem + "ない") # negative
-            add(stem + "た") # past
-            add(stem + "て") # -te form
-            # add(stem + "ている") # -te+iru form
-            # add(stem + "てる") # -te+iru form
-            add(stem + "られる") # potential + passive (they're the same for ichidan verbs...)
-            add(stem + "させる") # causative
-            add(stem + "よう") # volitive
+            add("") # stem
+            add("ない") # negative
+            add("た") # past
+            add("て") # -te form
+            add("られる") # potential + passive (they're the same for ichidan verbs...)
+            add("させる") # causative
+            add("よう") # volitive
+            add("たい") # tai-form
         elif type == "v5s":
-            add(stem + "した") # past
-            add(stem + "して") # -te form
-            # add(stem + "している") # -te+iru form
-            # add(stem + "してる") # -te+iru form
+            add("した") # past
+            add("して") # -te form
         elif type in ["v5k", "v5g"]:
-            add(stem + "いた") # past
-            add(stem + "いて") # -te form
-            # add(stem + "いている") # -te+iru form
-            # add(stem + "いてる") # -te+iru form
+            add("いた") # past
+            add("いて") # -te form
         elif type in ["v5b", "v5m", "v5n"]:
-            add(stem + "んだ") # past
-            add(stem + "んで") # -te form
-            # add(stem + "んでいる") # -te+iru form
-            # add(stem + "んでる") # -te+iru form
+            add("んだ") # past
+            add("んで") # -te form
         elif type in ["v5r", "v5t", "v5u"]:
-            add(stem + "った") # past
-            add(stem + "って") # -te form
-            # add(stem + "っている") # -te+iru form
-            # add(stem + "ってる") # -te+iru form
+            add("った") # past
+            add("って") # -te form
         
         firstNegativeKana = ""
+        stemKana = ""
         
-        #TODO: Potrei usare romkan per costruire i kana che mi servono a partire dal type (es. se v5g, converto g + o per ottenere ご )
-        
-                          # potential        # volitive       # real stem                     
-        if type == "v5k": add(stem + "ける"); add(stem + "こう"); add(stem + "き"); firstNegativeKana = "か"
-        if type == "v5g": add(stem + "げる"); add(stem + "ごう"); add(stem + "ぎ"); firstNegativeKana = "が"
-        if type == "v5b": add(stem + "べる"); add(stem + "ぼう"); add(stem + "び"); firstNegativeKana = "ば"
-        if type == "v5m": add(stem + "める"); add(stem + "もう"); add(stem + "み"); firstNegativeKana = "ま"
-        if type == "v5n": add(stem + "ねる"); add(stem + "のう"); add(stem + "に"); firstNegativeKana = "な"
-        if type == "v5r": add(stem + "れる"); add(stem + "ろう"); add(stem + "り"); firstNegativeKana = "ら"
-        if type == "v5t": add(stem + "てる"); add(stem + "とう"); add(stem + "ち"); firstNegativeKana = "た" 
-        if type == "v5u": add(stem + "える"); add(stem + "おう"); add(stem + "い"); firstNegativeKana = "わ" 
-        if type == "v5s": add(stem + "せる"); add(stem + "そう"); add(stem + "し"); firstNegativeKana = "さ" 
+                          # potential # volitive # stem    
+        if type == "v5k": add("ける"); add("こう"); stemKana = "き"; firstNegativeKana = "か"
+        if type == "v5g": add("げる"); add("ごう"); stemKana = "ぎ"; firstNegativeKana = "が"
+        if type == "v5b": add("べる"); add("ぼう"); stemKana = "び"; firstNegativeKana = "ば"
+        if type == "v5m": add("める"); add("もう"); stemKana = "み"; firstNegativeKana = "ま"
+        if type == "v5n": add("ねる"); add("のう"); stemKana = "に"; firstNegativeKana = "な"
+        if type == "v5r": add("れる"); add("ろう"); stemKana = "り"; firstNegativeKana = "ら"
+        if type == "v5t": add("てる"); add("とう"); stemKana = "ち"; firstNegativeKana = "た" 
+        if type == "v5u": add("える"); add("おう"); stemKana = "い"; firstNegativeKana = "わ" 
+        if type == "v5s": add("せる"); add("そう"); stemKana = "し"; firstNegativeKana = "さ" 
 
         if type[0:2] == "v5":
-            add(stem + firstNegativeKana + "ない") #negative
-            add(stem + firstNegativeKana + "せる")  #causative
-            add(stem + firstNegativeKana + "れる")  #passive
+            add(firstNegativeKana + "ない")  # negative
+            add(firstNegativeKana + "せる")  # causative
+            add(firstNegativeKana + "れる")  # passive
+            add(stemKana) # stem
+            add(stemKana + "たい") # tai-form
 
     return newWords
         
@@ -216,13 +211,10 @@ def findWordsFromFragment(text):
     
 # The following sentence still trips the splitter up: it does がそ/れ instead of が/それ (れ is the stem of ichidan verb れる)...
 # print(splitSentence("あなたがそれを気に入るのはわかっていました。"))
-# I could try to make words weighted (to make uninflected words like がそ preferable to れ), but it still wouldn't be enough
-# print(splitSentence("女の子がとてもぱぷぺｐｄｐｆｄｓぱんｄねＴＰＯあねせるｄねおｄぉうううえかわいいですけど"))
-# print(splitSentence("ぱぷぺｐｄｐｆｄｓぱんｄねＴＰＯあねせるｄねおｄぉうううえ"))
-# print(splitSentence("読むことが出来ないよね"))
-# print(getTranslation("ＴＰＯ"))
-# print(getTranslation(romkan.to_hiragana("ＴＰＯ".replace(" ", ""))))
-# print(romkan.katakana_to_hiragana("ＴＰＯ") == "ＴＰＯ")
 
-def test():
+
+if __name__ == '__main__':
     print(getTranslation("hiraita"))
+    print(getTranslation("行き"))
+    print(getTranslation("食べた"))
+    print(getTranslation("泣きたい"))
