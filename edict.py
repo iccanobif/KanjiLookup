@@ -196,14 +196,14 @@ def splitSentence(text):
 # If I can't find any suitable substring, that means that the input is gibberish. Return that as if it were a single word.
 
 def splitSentence(text):
-    text = normalizeInput(text)
+    # text = normalizeInput(text)
     if len(text) == 1: return [text]
     if text == "": return []
 
     for length in range(len(text), 0, -1):
         for i in range(0, len(text) - length + 1):
             t = text[i:i+length]
-            if t in dictionary:
+            if normalizeInput(t) in dictionary:
                 return splitSentence(text[0:i]) + [t] + splitSentence(text[i+length:])
     return [text]
     
@@ -225,4 +225,4 @@ if __name__ == '__main__':
     print(getTranslation("行った"))
     print(getTranslation("行かない"))
     print(findWordsFromFragment("会{eye,legs}"))
-    
+    print(splitSentence("naniwosuru"))

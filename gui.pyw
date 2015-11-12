@@ -1,5 +1,6 @@
 ﻿import sys
 import os
+import re
 if sys.executable.endswith("pythonw.exe"):
     sys.stderr = open(os.devnull, "w")
 
@@ -204,13 +205,17 @@ class MainWindow(QWidget):
         if self.txtOutputAggregation.hasSelectedText(): 
             return # Let ontxtOutputAggregationSelectionChanged() handle this
         
-        # This stuff doesn't work: the input text (possibly in romaji) doesn't necessarily have
-        # the same length as what splitSentence() spits out...
-        # i = 0
-        # for w in edict.splitSentence(txtOutputAggregation.text()):
-            # if len(w) + i > newPosition:
-                # showTranslations(w)
-                # return
+        # This is utter rubbish... Relies on the fact that splitSentence() returns
+        # all the extra whitespace between words, and weird things happen when the cursor's
+        # between two words
+        # merda = len(re.sub("\s*?", "", self.txtOutputAggregation.text()[:newPosition]))
+        i = 0
+        for w in edict.splitSentence(self.txtOutputAggregation.text()):
+            if len(w) + i > newPosition:
+                self.showTranslations(w)
+                return
+            else:
+                i += len(w)
         
     def onlblSplittedWordsListlinkActivated(self, link):
         self.showTranslations(link)
