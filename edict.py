@@ -168,8 +168,15 @@ def splitSentencePrioritizeLongest(text):
                 return splitSentencePrioritizeLongest(text[0:i]) + [t] + splitSentencePrioritizeLongest(text[i+length:])
     return [text]
     
+#TODO: Instead of caching here, avoid calling splitSentence() so often from the UI...
+_splitterCache = dict()
 def splitSentence(text):
-    return splitSentencePrioritizeLongest(text)
+    if text in _splitterCache:
+        return _splitterCache[text]
+    
+    output = splitSentencePrioritizeLongest(text)
+    _splitterCache[text] = output
+    return output
         
 def findWordsFromFragment(text):
     # Replace lists of radical names (ex. "{woman,roof}") with the actual possible kanjis
