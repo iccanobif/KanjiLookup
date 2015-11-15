@@ -141,72 +141,36 @@ def getTranslation(text):
     
     return output
     
-# Always tries to make the first word as long as possible.
-# Could it be better to try out every possible split instead, and pick the one with the fewest words?
-def splitSentence(text):
-    print("splitSentence:", text)
-    text = normalizeInput(text)
+# Always tries to make the first word as long as possible. Not resistant
+# against gibberish
+def splitSentencePrioritizeFirst(text):
     if text == "":
         return []
     for i in range(len(text)+1, 0, -1):
         firstWord = text[0:i]
-        print("    firstWord:", firstWord)
-        if firstWord in dictionary:
-            return [firstWord] + splitSentence(text[i:])
-    return [text]
+        if normalizeInput(firstWord) in dictionary:
+            return [firstWord] + splitSentencePrioritizeFirst(text[i:])
+            
+    return [text[0]] + splitSentencePrioritizeFirst(text[1:])
 
-# This one is still not robust against gibberish...
-def splitSentence(text):
-    text = normalizeInput(text)
-    print("splitSentence:", text)
-    
-    # Corner cases (no need to recurse any further)
-    if text == "": return []
-    if len(text) == 1:
-        if text in dictionary:
-            return [text]
-        else:
-            return None
-        return [text]
 
-    # Tries out every possible splitting option
-    possibleSolutions = []
-    for i in range(1, len(text)+1):
-        leftPart = text[0:i]
-        if leftPart not in dictionary:
-            continue
-        rightPart = splitSentence(text[i:])
-        if rightPart is None:
-            continue
-        possibleSolutions.append([leftPart] + rightPart)
-
-    if len(possibleSolutions) == 0:
-        return None
-
-    # Find solution with the minimum word count
-    minIdx = 0
-    for i in range(1, len(possibleSolutions)):
-        if len(possibleSolutions[i]) < len(possibleSolutions[minIdx]):
-            minIdx = i
-    return possibleSolutions[minIdx]
-
-# Maybe this is the right one? Gibberish resistant
+# Gibberish resistant
 # Scan the input string for the longest substring that is a real word in the dictionary.
 # Then do the same for what's on the left of said substring and what's on the right.
 # If I can't find any suitable substring, that means that the input is gibberish. Return that as if it were a single word.
-
-def splitSentence(text):
-    # text = normalizeInput(text)
+def splitSentencePrioritizeLongest(text):
     if len(text) == 1: return [text]
     if text == "": return []
-
     for length in range(len(text), 0, -1):
         for i in range(0, len(text) - length + 1):
             t = text[i:i+length]
             if normalizeInput(t) in dictionary:
-                return splitSentence(text[0:i]) + [t] + splitSentence(text[i+length:])
+                return splitSentencePrioritizeLongest(text[0:i]) + [t] + splitSentencePrioritizeLongest(text[i+length:])
     return [text]
     
+def splitSentence(text):
+    return splitSentencePrioritizeLongest(text)
+        
 def findWordsFromFragment(text):
     # Replace lists of radical names (ex. "{woman,roof}") with the actual possible kanjis
     for radicalList in re.findall("{.*?}", text):
@@ -226,3 +190,6 @@ if __name__ == '__main__':
     print(getTranslation("行かない"))
     print(findWordsFromFragment("会{eye,legs}"))
     print(splitSentence("naniwosuru"))
+    print(splitSentence("通過した")) # has to split as "通過 した" and not as "通 過した"
+    print(splitSentencePrioritizeFirst("通過したhforew opfdsした"))
+    print(splitSentencePrioritizeLongest("通過したhforew opfdsした"))
