@@ -29,7 +29,7 @@ dictionary = None
 
 def extendWithConjugations(words, translation):
 
-    m = re.search("v1|v5aru|v5b|v5g|v5k-s|v5k|v5m|v5n|v5r-i|v5r|v5s|v5t|v5u-s|v5uru|v5u|v5", translation)
+    m = re.search("v1|v5aru|v5b|v5g|v5k-s|v5k|v5m|v5n|v5r-i|v5r|v5s|v5t|v5u-s|v5uru|v5u|v5|adj-ix|adj-i", translation)
     if m is None:
         return words
     type = m.group()
@@ -48,11 +48,21 @@ def extendWithConjugations(words, translation):
         root = w[:-1]
         def add(w):
             newWords.append(root + w)
-
+            
+        if type == "adj-i":
+            add("くない") # negative
+            add("く")    # adverbial form
+            add("かった") # past
+            add("くなかった") # past negative
+        if type == "adj-ix":
+            newWords.append(w[:-2] + "よくない") # negative
+            newWords.append(w[:-2] + "よかった") # past
+            newWords.append(w[:-2] + "よくなかった") # past negative
         if type == "v1":
             add("") # stem
             add("ない") # negative
             add("た") # past
+            add("なかった") # past negative
             add("て") # -te form
             add("られる") # potential + passive (they're the same for ichidan verbs...)
             add("させる") # causative
@@ -90,6 +100,7 @@ def extendWithConjugations(words, translation):
 
         if type[0:2] == "v5":
             add(firstNegativeKana + "ない")  # negative
+            add(firstNegativeKana + "なかった")  # past negative
             add(firstNegativeKana + "せる")  # causative
             add(firstNegativeKana + "れる")  # passive
             add(stemKana) # stem
