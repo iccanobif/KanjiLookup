@@ -174,7 +174,7 @@ def splitSentence(text):
     if text in _splitterCache:
         return _splitterCache[text]
     
-    output = splitSentencePrioritizeLongest(text)
+    output = splitSentencePrioritizeFirst(text)
     _splitterCache[text] = output
     return output
         
