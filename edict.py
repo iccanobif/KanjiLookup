@@ -27,6 +27,12 @@ import lookup
 
 dictionary = None
 
+class DictionaryEntry:
+    def __init__(self):
+        self.translation = ""
+        self.isConjugated = False
+        self.conjugationType = ""
+
 def extendWithConjugations(words, translation):
 
     m = re.search("v1|v5aru|v5b|v5g|v5k-s|v5k|v5m|v5n|v5r-i|v5r|v5s|v5t|v5u-s|v5uru|v5u|v5|adj-ix|adj-i", translation)
@@ -54,12 +60,16 @@ def extendWithConjugations(words, translation):
             add("く")    # adverbial form
             add("かった") # past
             add("くなかった") # past negative
+            add("くて") # te-form
         if type == "adj-ix":
             newWords.append(w[:-2] + "よくない") # negative
+            newWords.append(w[:-2] + "よく") # adverbial form
             newWords.append(w[:-2] + "よかった") # past
             newWords.append(w[:-2] + "よくなかった") # past negative
+            newWords.append(w[:-2] + "よくて") # te-form
         if type == "v1":
             add("") # stem
+            add("ます") # masu-form
             add("ない") # negative
             add("た") # past
             add("なかった") # past negative
@@ -105,6 +115,7 @@ def extendWithConjugations(words, translation):
             add(firstNegativeKana + "れる")  # passive
             add(stemKana) # stem
             add(stemKana + "たい") # tai-form
+            add(stemKana + "ます") # masu-form
 
     return newWords
         
