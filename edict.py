@@ -29,8 +29,8 @@ import dictionary
 class EdictDictionary(dictionary.Dictionary):
 
     def __init__(self):
+        dictionary.Dictionary.__init__(self)
         self.dictionary = None
-        self._splitterCache = dict()
         self.__loadDictionary() #comment here to do lazy loading of dictionary
     
     class DictionaryEntry:
@@ -164,7 +164,7 @@ class EdictDictionary(dictionary.Dictionary):
         output = []
         for entry in self.dictionary[text]:
             entry = entry.strip().strip("/")
-            output.append(entry[:entry.rfind("/")])
+            output.append(entry[:entry.rfind("/")]) #remove entry id (eg. "EntL1000920X")
         
         return output
             

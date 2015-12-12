@@ -1,4 +1,7 @@
 class Dictionary:
+    
+    def __init__(self):
+        self._splitterCache = dict()
 
     # Always tries to make the first word as long as possible. Not resistant
     # against gibberish
