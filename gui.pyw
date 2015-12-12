@@ -26,6 +26,9 @@ from historyWindow import HistoryWindow
 class MainWindow(QWidget):
 
     def __init__(self):
+    
+        self.dict = edict.EdictDictionary()
+    
         QWidget.__init__(self)
         self.setWindowTitle("Kanji lookup")
         self.resize(500, 600)
@@ -149,7 +152,7 @@ class MainWindow(QWidget):
         popup.show()
         
     def showTranslations(self, word):
-        translations = edict.getTranslation(word)
+        translations = self.dict.getTranslation(word)
         
         if translations is None:
             self.txtTranslations.setPlainText("-- not found --")
@@ -173,7 +176,7 @@ class MainWindow(QWidget):
             text = self.txtOutputAggregation.text()
 
         popup = ListPopup(self)
-        popup.show(edict.findWordsFromFragment(text))
+        popup.show(self.dict.findWordsFromFragment(text))
         
         
     def ontxtOutputAggregationTextChanged(self):
@@ -186,7 +189,7 @@ class MainWindow(QWidget):
             self.lblSplittedWordsList.setText("")
             return
         
-        words = edict.splitSentence(input)
+        words = self.dict.splitSentence(input)
         
         self.showTranslations(words[0])
         
@@ -210,7 +213,7 @@ class MainWindow(QWidget):
         # between two words
         # merda = len(re.sub("\s*?", "", self.txtOutputAggregation.text()[:newPosition]))
         i = 0
-        for w in edict.splitSentence(self.txtOutputAggregation.text()):
+        for w in self.dict.splitSentence(self.txtOutputAggregation.text()):
             if len(w) + i > newPosition:
                 self.showTranslations(w)
                 return
