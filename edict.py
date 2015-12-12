@@ -78,6 +78,7 @@ def extendWithConjugations(words, translation):
             add("させる") # causative
             add("よう") # volitive
             add("たい") # tai-form
+            add("ず") # zu-form
         elif type == "v5s":
             add("した") # past
             add("して") # -te form
@@ -113,6 +114,7 @@ def extendWithConjugations(words, translation):
             add(firstNegativeKana + "なかった")  # past negative
             add(firstNegativeKana + "せる")  # causative
             add(firstNegativeKana + "れる")  # passive
+            add(firstNegativeKana + "ず")  # zu-form
             add(stemKana) # stem
             add(stemKana + "たい") # tai-form
             add(stemKana + "ます") # masu-form
