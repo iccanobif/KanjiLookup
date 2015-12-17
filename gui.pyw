@@ -29,7 +29,7 @@ class MainWindow(QWidget):
 
     def __init__(self):
     
-        self.dict = cedict.CedictDictionary()
+        self.dict = edict.EdictDictionary()
     
         QWidget.__init__(self)
         self.setWindowTitle("Kanji lookup")
@@ -76,9 +76,9 @@ class MainWindow(QWidget):
         self.spnStrokeCount.valueChanged.connect(self.onspnStrokeCountValueChanged)
         
         self.rbtChinese = QRadioButton("Chinese", self)
-        self.rbtChinese.setChecked(True)
         self.rbtChinese.toggled.connect(self.onLanguageChanged)
         self.rbtJapanese = QRadioButton("Japanese", self)
+        self.rbtJapanese.setChecked(True)
         
         #Layout
 
