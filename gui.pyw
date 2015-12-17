@@ -19,6 +19,8 @@ splashScreen.showMessage("Loading kanjidic...")
 import kanjidic
 splashScreen.showMessage("Loading kradfile...")
 import lookup
+splashScreen.showMessage("Loading cedict...")
+import cedict
 splashScreen.showMessage("Loading edict...")
 import edict
 from historyWindow import HistoryWindow
@@ -27,7 +29,7 @@ class MainWindow(QWidget):
 
     def __init__(self):
     
-        self.dict = edict.EdictDictionary()
+        self.dict = cedict.CedictDictionary()
     
         QWidget.__init__(self)
         self.setWindowTitle("Kanji lookup")
@@ -72,7 +74,12 @@ class MainWindow(QWidget):
         self.lblStrokeCount = QLabel("Stroke count:")
         self.spnStrokeCount = QSpinBox(self)
         self.spnStrokeCount.valueChanged.connect(self.onspnStrokeCountValueChanged)
-
+        
+        self.rbtChinese = QRadioButton("Chinese", self)
+        self.rbtChinese.setChecked(True)
+        self.rbtChinese.toggled.connect(self.onLanguageChanged)
+        self.rbtJapanese = QRadioButton("Japanese", self)
+        
         #Layout
 
         self.mainLayout = QVBoxLayout(self)
@@ -95,6 +102,8 @@ class MainWindow(QWidget):
         self.strokeCountLayout = QHBoxLayout()
         self.strokeCountLayout.addWidget(self.lblStrokeCount)
         self.strokeCountLayout.addWidget(self.spnStrokeCount)
+        self.strokeCountLayout.addWidget(self.rbtChinese)
+        self.strokeCountLayout.addWidget(self.rbtJapanese)
         self.mainLayout.addLayout(self.strokeCountLayout)
         self.lblStrokeCount.adjustSize()
         
@@ -222,6 +231,12 @@ class MainWindow(QWidget):
         
     def onlblSplittedWordsListlinkActivated(self, link):
         self.showTranslations(link)
+        
+    def onLanguageChanged(self, checked):
+        if self.rbtChinese.isChecked():
+            self.dict = cedict.CedictDictionary()
+        else:
+            self.dict = edict.EdictDictionary()
         
 class Popup(QDialog):
     def __init__(self, parent, text):
