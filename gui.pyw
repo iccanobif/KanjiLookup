@@ -178,6 +178,8 @@ class MainWindow(QWidget):
         if self.txtOutputAggregation.text().strip() == "":
             return
             
+        self.setCursor(Qt.WaitCursor)
+            
         text = ""
         if self.txtOutputAggregation.hasSelectedText():
             text = self.txtOutputAggregation.selectedText()
@@ -187,6 +189,7 @@ class MainWindow(QWidget):
         popup = ListPopup(self)
         popup.show(self.dict.findWordsFromFragment(text))
         
+        self.unsetCursor()
         
     def ontxtOutputAggregationTextChanged(self):
         self.historyWindow.addEntry(self.txtOutputAggregation.text())
@@ -233,10 +236,12 @@ class MainWindow(QWidget):
         self.showTranslations(link)
         
     def onLanguageChanged(self, checked):
+        self.setCursor(Qt.WaitCursor)
         if self.rbtChinese.isChecked():
             self.dict = cedict.CedictDictionary()
         else:
             self.dict = edict.EdictDictionary()
+        self.unsetCursor()
         
 class Popup(QDialog):
     def __init__(self, parent, text):
