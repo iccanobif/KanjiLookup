@@ -25,12 +25,46 @@ import lookup
 # v5u-s (godan) verb with `u' ending (special class) 
 # v5uru (godan) verb - uru old class verb (old form of Eru) 
 
+
+
+class PerformanceStatistics:
+    def __init__(self):
+        self.lastTime = time.clock()
+        self.stats = dict()
+        # self.stats["measuring performance"] = []
+        
+    def done(self, description):
+        now = time.clock()
+        if description not in self.stats:
+            self.stats[description] = []
+        self.stats[description].append(now - self.lastTime)
+        self.lastTime = now
+        # self.stats["measuring performance"].append(time.clock() - now)
+        
+    def computeAverage(self, description):
+        return (self.computeTotal(description) / len(self.stats[description]))
+        
+    def computeTotal(self, description):
+        return sum(self.stats[description])  * 1000
+        
+    def printStats(self):
+        for d in sorted(self.stats.keys(), key=self.computeTotal):
+            print(d + ": ")
+            print("    average: " + str(self.computeAverage(d)) + " ms")
+            print("    total: " + str(self.computeTotal(d)) + " ms")
+            print("    max: " + str(max(self.stats[d])*1000) + " ms")
+            print("    min: " + str(min(self.stats[d])*1000) + " ms")
+
 class EdictDictionary:
+
+    dictionary = None
 
     def __init__(self):
         self._splitterCache = dict()
-        self.dictionary = None
-        self.__loadDictionary() #comment here to do lazy loading of dictionary
+        if EdictDictionary.dictionary is not None:
+            self.dictionary = EdictDictionary.dictionary
+        else:
+            self.__loadDictionary() #comment here to do lazy loading of dictionary
     
     class DictionaryEntry:
         def __init__(self):
@@ -48,7 +82,6 @@ class EdictDictionary:
             return words # I don't know how to conjugate this stuff (yet)
             
         newWords = list(words)
-        
         
         #TODO: imperative
         
@@ -125,26 +158,33 @@ class EdictDictionary:
                 add(stemKana + "ます") # masu-form
 
         return newWords
-            
+        
     def __loadDictionary(self):
         print("Loading edict2... ", end="", flush=True)
         starttime = time.clock()
         self.dictionary = dict()
+        EdictDictionary.dictionary = self.dictionary #make a static copy 
         with open("edict2u", "r", encoding="utf8") as f:
+            # stats = PerformanceStatistics()
             for line in f.readlines():
+                # stats.done("linea")
                 boundary = line.find("/")
                 kanjis = line[0:boundary].lower()
                 kanjis = re.sub("\[|\]| |\(.*?\)", ";", kanjis) #remove anything that's inside ()
+                kanjis = romkan.katakana_to_hiragana(kanjis)
                 kanjis = kanjis.split(";")
-                kanjis = list(map(romkan.katakana_to_hiragana,kanjis))
                 kanjis = self.extendWithConjugations(kanjis, line[boundary:])
                 
                 for k in kanjis:
                     if k == "": continue
                     if k not in self.dictionary:
-                        self.dictionary[k] = []
-                    self.dictionary[k].append(line)
+                        self.dictionary[k] = [line]
+                    else:
+                        self.dictionary[k].append(line)
+                
         print("OK (" + str(time.clock() - starttime) + " seconds)")
+        # stats.printStats()
+        
 
     def normalizeInput(self, text):
         text = romkan.to_hiragana(text.replace(" ", ""))    

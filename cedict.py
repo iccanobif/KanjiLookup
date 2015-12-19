@@ -6,15 +6,20 @@ import time
 # 一時半刻 一时半刻 [yi1 shi2 ban4 ke4] /a short time/a little while/
 class CedictDictionary:
 
+    dictionary = None
+    
     def __init__(self):
         self._splitterCache = dict()
-        self.dictionary = None
-        self.__loadDictionary() #comment here to do lazy loading of dictionary
+        if CedictDictionary.dictionary is not None:
+            self.dictionary = CedictDictionary.dictionary
+        else:
+            self.__loadDictionary() #comment here to do lazy loading of dictionary
 
     def __loadDictionary(self):
         print("Loading cc-cedict... ", end="", flush=True)
         starttime = time.clock()
         self.dictionary = dict()
+        CedictDictionary.dictionary = self.dictionary #make a static copy 
         with open("cedict_ts.u8", "r", encoding="utf8") as f:
             for line in f.readlines():
                 i = line.find(" ")
