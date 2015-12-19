@@ -30,8 +30,6 @@ except ImportError:
             __hash__ = None
         return K
 
-
-
 #
 # Ruby/Romkan - a Romaji <-> Kana conversion library for Ruby.
 #
@@ -574,6 +572,8 @@ def expand_consonant(str):
     
     return sorted([mora for mora in ROMKAN.keys() if re.match("^%s.$" % str, mora)])
 
+#hiragana from 12353 to 12435 (included)
+#katanaka from 12449 to 12531 (included)
 def hiragana_to_katakana(str):
     output = ""
     for c in str:
@@ -583,11 +583,22 @@ def hiragana_to_katakana(str):
             output += c
     return output
     
+# def katakana_to_hiragana(str):
+    # output = ""
+    # for c in str:
+        # if ord(c) >= 12353 + 96 and ord(c) <= 12435 + 96:
+            # output += chr(ord(c) - 96)
+        # else:
+            # output += c
+    # return output
+
+_katakana = ""
+for i in range(12449, 12532):
+    _katakana += chr(i)
+_higarana = ""
+for i in range(12353, 12436):
+    _higarana += chr(i)
+_trans = str.maketrans(_katakana, _higarana)
+
 def katakana_to_hiragana(str):
-    output = ""
-    for c in str:
-        if ord(c) >= 12353 + 96 and ord(c) <= 12435 + 96:
-            output += chr(ord(c) - 96)
-        else:
-            output += c
-    return output
+    return str.translate(_trans)
