@@ -241,6 +241,7 @@ class MainWindow(QWidget):
             self.dict = cedict.CedictDictionary()
         else:
             self.dict = edict.EdictDictionary()
+        self.ontxtOutputAggregationTextChanged()
         self.unsetCursor()
         
 class Popup(QDialog):
