@@ -8,6 +8,10 @@ import lookup
 # 煆焼;か焼 [かしょう] /(n,vs) calcination/calcining/EntL2819620/
 # いらっしゃい(P);いらしゃい(ik) /(int,n) (1) (hon) (used as a polite imperative) (See いらっしゃる・1) come/go/stay/(2) (See いらっしゃいませ) welcome!/(P)/EntL1000920X/
 
+#ENAMDICT entry sample:
+# さより /(f) Sayori/
+# さよ子 [さよこ] /(f) Sayoko/
+
 # v1 Ichidan verb <<-- OK
 # v5 (godan) verb (not completely classified)  <<--- i'll pretend it's not a verb
 # v5aru (godan) verb - -aru special class (stuff like 下さる and いらっしゃる)  <<--- no need to conjugate these, i guess
@@ -159,6 +163,12 @@ class EdictDictionary:
 
         return newWords
         
+    def __addWordToDictionary(self, word, entry):
+        if word not in self.dictionary:
+            self.dictionary[word] = [entry]
+        else:
+            self.dictionary[word].append(entry)
+        
     def __loadDictionary(self):
         print("Loading edict2... ", end="", flush=True)
         starttime = time.clock()
@@ -177,14 +187,23 @@ class EdictDictionary:
                 
                 for k in kanjis:
                     if k == "": continue
-                    if k not in self.dictionary:
-                        self.dictionary[k] = [line]
-                    else:
-                        self.dictionary[k].append(line)
-                
+                    self.__addWordToDictionary(k, line)
+        print("OK (" + str(time.clock() - starttime) + " seconds)")
+        print("Loading enamdict... ", end="", flush=True)
+        starttime = time.clock()
+        with open("enamdict.utf", "r", encoding="utf8") as f:
+            for line in f.readlines():
+                line = line.strip()
+                name = line[0:line.find("/")]
+                secondaryReadingStart = name.find("[")
+                secondaryReadingEnd = name.find("]")
+                if secondaryReadingStart == -1: # there's only one reading
+                    self.__addWordToDictionary(name.strip(), line)
+                else:
+                    self.__addWordToDictionary(name[0:secondaryReadingStart].strip(), line)
+                    self.__addWordToDictionary(name[secondaryReadingStart+1:secondaryReadingEnd].strip(), line)
         print("OK (" + str(time.clock() - starttime) + " seconds)")
         # stats.printStats()
-        
 
     def normalizeInput(self, text):
         text = romkan.to_hiragana(text.replace(" ", ""))    
@@ -202,8 +221,14 @@ class EdictDictionary:
         
         output = []
         for entry in self.dictionary[text]:
+            print("entry", entry)
             entry = entry.strip().strip("/")
-            output.append(entry[:entry.rfind("/")]) #remove entry id (eg. "EntL1000920X")
+            entryIdIndex = entry.rfind("/Ent") #remove entry id (eg. "EntL1000920X")
+            # print("entryIdIndex", entryIdIndex)
+            if entryIdIndex != -1:
+                output.append(entry[:entry.rfind("/Ent")]) 
+            else:
+                output.append(entry) 
         
         return output
             
@@ -256,14 +281,15 @@ class EdictDictionary:
 
 if __name__ == '__main__':
     d = EdictDictionary()
-    print(d.getTranslation("hiraita"))
-    print(d.getTranslation("泣き"))
-    print(d.getTranslation("食べた"))
-    print(d.getTranslation("泣きたい"))
-    print(d.getTranslation("行った"))
-    print(d.getTranslation("行かない"))
-    print(d.findWordsFromFragment("会{eye,legs}"))
-    print(d.splitSentence("naniwosuru"))
-    print(d.splitSentence("通過した")) # has to split as "通過 した" and not as "通 過した"
-    print(d.splitSentencePrioritizeFirst("通過したhforew opfdsした"))
-    print(d.splitSentencePrioritizeLongest("通過したhforew opfdsした"))
+    # print(d.getTranslation("hiraita"))
+    # print(d.getTranslation("泣き"))
+    # print(d.getTranslation("食べた"))
+    # print(d.getTranslation("泣きたい"))
+    # print(d.getTranslation("行った"))
+    # print(d.getTranslation("行かない"))
+    # print(d.findWordsFromFragment("会{eye,legs}"))
+    # print(d.splitSentence("naniwosuru"))
+    # print(d.splitSentence("通過した")) # has to split as "通過 した" and not as "通 過した"
+    # print(d.splitSentencePrioritizeFirst("通過したhforew opfdsした"))
+    # print(d.splitSentencePrioritizeLongest("通過したhforew opfdsした"))
+    # print(d.getTranslation("さなえ"))
