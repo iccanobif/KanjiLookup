@@ -175,6 +175,7 @@ class MainWindow(QWidget):
         self.populateList(False)
         
     def onbtnSearchWordClicked(self):
+    
         if self.txtOutputAggregation.text().strip() == "":
             return
             

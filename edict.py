@@ -124,9 +124,12 @@ class EdictDictionary:
             elif type == "v5s":
                 add("した") # past
                 add("して") # -te form
-            elif type in ["v5k", "v5g"]:
+            elif type == "v5k":
                 add("いた") # past
                 add("いて") # -te form
+            elif type == "v5g":
+                add("いだ") # past
+                add("いで") # -te form
             elif type == "v5k-s": # for verbs ending in 行く
                 add("った") # past
                 add("いて") # -te form
