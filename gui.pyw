@@ -107,6 +107,8 @@ class MainWindow(QWidget):
         self.mainLayout.addLayout(self.strokeCountLayout)
         self.lblStrokeCount.adjustSize()
         
+        
+        
     def resizeEvent(self, event):
         self.populateList(False)
         

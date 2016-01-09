@@ -1,5 +1,5 @@
 import re
-import utf8console
+#import utf8console
 import time
 import romkan
 import lookup

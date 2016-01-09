@@ -1,4 +1,4 @@
-import utf8console
+#import utf8console
 import sys, time
 
 radicalsDb = dict()
