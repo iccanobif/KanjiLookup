@@ -51,8 +51,8 @@ class MainWindow(QWidget):
         self.txtOutputAggregation = QLineEdit(self)
         self.txtOutputAggregation.setStyleSheet("font-size: 70px")
         self.txtOutputAggregation.textChanged.connect(self.ontxtOutputAggregationTextChanged)
-        self.txtOutputAggregation.selectionChanged.connect(self.ontxtOutputAggregationSelectionChanged)
-        self.txtOutputAggregation.cursorPositionChanged.connect(self.ontxtOutputAggregationCursorPositionChanged)
+        self.txtOutputAggregation.selectionChanged.connect(self.handleSelectionChangesOrCursorMovements)
+        self.txtOutputAggregation.cursorPositionChanged.connect(self.handleSelectionChangesOrCursorMovements)
 
         self.btnShowRadicals = QPushButton("Show radicals...", self)
         self.btnShowRadicals.clicked.connect(self.onbtnShowRadicalsClicked)
@@ -106,8 +106,6 @@ class MainWindow(QWidget):
         self.strokeCountLayout.addWidget(self.rbtJapanese)
         self.mainLayout.addLayout(self.strokeCountLayout)
         self.lblStrokeCount.adjustSize()
-        
-        
         
     def resizeEvent(self, event):
         self.populateList(False)
@@ -213,27 +211,24 @@ class MainWindow(QWidget):
             text += "<a href='word'>word</a> ".replace("word", w)
         self.lblSplittedWordsList.setText(text)
         
-    def ontxtOutputAggregationSelectionChanged(self):
+        self.handleSelectionChangesOrCursorMovements()
+        
+        
+    def handleSelectionChangesOrCursorMovements(self):
         if self.txtOutputAggregation.hasSelectedText():
             self.showTranslations(self.txtOutputAggregation.selectedText())
         else:
-            self.showTranslations(self.txtOutputAggregation.text())
-
-    def ontxtOutputAggregationCursorPositionChanged(self, oldPosition, newPosition):
-        if self.txtOutputAggregation.hasSelectedText(): 
-            return # Let ontxtOutputAggregationSelectionChanged() handle this
-        
-        # This is utter rubbish... Relies on the fact that splitSentence() returns
-        # all the extra whitespace between words, and weird things happen when the cursor's
-        # between two words
-        # merda = len(re.sub("\s*?", "", self.txtOutputAggregation.text()[:newPosition]))
-        i = 0
-        for w in self.dict.splitSentence(self.txtOutputAggregation.text()):
-            if len(w) + i > newPosition:
-                self.showTranslations(w)
-                return
-            else:
-                i += len(w)
+            # This is utter rubbish... Relies on the fact that splitSentence() returns
+            # all the extra whitespace between words, and weird things happen when the cursor's
+            # between two words
+            # merda = len(re.sub("\s*?", "", self.txtOutputAggregation.text()[:newPosition]))
+            i = 0
+            for w in self.dict.splitSentence(self.txtOutputAggregation.text()):
+                if len(w) + i >= self.txtOutputAggregation.cursorPosition():
+                    self.showTranslations(w)
+                    return
+                else:
+                    i += len(w)
         
     def onlblSplittedWordsListlinkActivated(self, link):
         self.showTranslations(link)
