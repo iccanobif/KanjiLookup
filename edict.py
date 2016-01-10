@@ -192,7 +192,6 @@ class EdictDictionary:
                     if k == "": continue
                     self.__addWordToDictionary(k, line)
         print("OK (" + str(time.clock() - starttime) + " seconds)")
-        return #skip enamdict
         print("Loading enamdict... ", end="", flush=True)
         starttime = time.clock()
         with open("enamdict.utf", "r", encoding="utf8") as f:
