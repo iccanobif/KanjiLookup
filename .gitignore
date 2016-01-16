@@ -1,3 +1,5 @@
 __pycache__
 errorlog.txt
 dist
+build
+gui.spec
