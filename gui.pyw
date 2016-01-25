@@ -37,7 +37,7 @@ class MainWindow(QWidget):
         QWidget.__init__(self)
         self.setWindowTitle("Kanji lookup")
         self.resize(500, 600)
-        self.setWindowFlags(Qt.WindowStaysOnTopHint)
+        # self.setWindowFlags(Qt.WindowStaysOnTopHint)
         self.setWindowIcon(QIcon("icon.png"))
 
         self.historyWindow = HistoryWindow(self)
@@ -121,7 +121,6 @@ class MainWindow(QWidget):
         self.showNormal()
         self.activateWindow()
         self.raise_()
-        self.repaint()
         
     def resizeEvent(self, event):
         self.populateList(False)
