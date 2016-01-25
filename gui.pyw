@@ -7,6 +7,9 @@ if sys.executable.endswith("pythonw.exe"):
 from PySide.QtCore import *
 from PySide.QtGui import *
 
+import win32con
+import hotkeythread
+
 app = QApplication(sys.argv)
 pixmap = QPixmap("splash.png")
 splashScreen = QSplashScreen(pixmap, Qt.WindowStaysOnTopHint)
@@ -106,6 +109,19 @@ class MainWindow(QWidget):
         self.strokeCountLayout.addWidget(self.rbtJapanese)
         self.mainLayout.addLayout(self.strokeCountLayout)
         self.lblStrokeCount.adjustSize()
+
+        # pid = ctypes.windll.kernel32.GetCurrentProcessId()
+        # ctypes.windll.user32.AllowSetForegroundWindow(pid)
+        
+        t = hotkeythread.HotkeyThread()
+        t.registerHotkey(win32con.MOD_CONTROL | win32con.MOD_ALT, ord("K"), self.focusWindow, self)
+        t.start()
+        
+    def focusWindow(self):
+        self.showNormal()
+        self.activateWindow()
+        self.raise_()
+        self.repaint()
         
     def resizeEvent(self, event):
         self.populateList(False)
@@ -277,3 +293,4 @@ window = MainWindow()
 window.show()
 splashScreen.finish(window)
 app.exec_()
+os._exit(0) # Kill the global hotkey thread. This is supposed to be a very bad thing to do, but I'm a very bad person and I do not care.
