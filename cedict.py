@@ -20,7 +20,7 @@ class CedictDictionary:
         starttime = time.clock()
         self.dictionary = dict()
         CedictDictionary.dictionary = self.dictionary #make a static copy 
-        with open("cedict_ts.u8", "r", encoding="utf8") as f:
+        with open("datasets/cedict_ts.u8", "r", encoding="utf8") as f:
             for line in f.readlines():
                 i = line.find(" ")
                 traditional = line[0:i]

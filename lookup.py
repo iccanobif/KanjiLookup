@@ -8,7 +8,7 @@ debug = False
 print("Loading kradfile...", end="", flush=True)
 _starttime = time.clock()
 #LOAD KRADFILE
-with open("kradfile-u", "r", encoding="utf8") as f:
+with open("datasets/kradfile-u", "r", encoding="utf8") as f:
     for line in f.readlines():
         line = line.strip()
         if line[0] == "#": continue
@@ -46,7 +46,7 @@ print("OK (" + str(time.clock() - _starttime) + " seconds)")
 print("Loading kangxi radicals...", end="", flush=True)
 _starttime = time.clock()
 wikiRadicals = {}
-with open("radicals", "r", encoding="utf8") as f:
+with open("datasets/radicals", "r", encoding="utf8") as f:
     for line in f.readlines():
         if line[0] == "#": continue
         splitted = line.strip().split("\t")

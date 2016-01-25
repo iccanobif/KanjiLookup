@@ -4,7 +4,7 @@ print("Loading kanjidic...", end="", flush=True)
 _starttime = time.clock()
 _strokeCountDictionary = dict()
 
-for line in open("kanjidic", "r", encoding="utf8").readlines():
+for line in open("datasets/kanjidic", "r", encoding="utf8").readlines():
     split = line.split(" ")
     kanji = split[0]
     strokeCount = None

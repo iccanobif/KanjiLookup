@@ -177,7 +177,7 @@ class EdictDictionary:
         starttime = time.clock()
         self.dictionary = dict()
         EdictDictionary.dictionary = self.dictionary #make a static copy 
-        with open("edict2u", "r", encoding="utf8") as f:
+        with open("datasets/edict2u", "r", encoding="utf8") as f:
             # stats = PerformanceStatistics()
             for line in f.readlines():
                 # stats.done("linea")
@@ -194,7 +194,7 @@ class EdictDictionary:
         print("OK (" + str(time.clock() - starttime) + " seconds)")
         print("Loading enamdict... ", end="", flush=True)
         starttime = time.clock()
-        with open("enamdict.utf", "r", encoding="utf8") as f:
+        with open("datasets/enamdict.utf", "r", encoding="utf8") as f:
             for line in f.readlines():
                 line = line.strip()
                 name = line[0:line.find("/")]
