@@ -119,8 +119,10 @@ class MainWindow(QWidget):
         
     def focusWindow(self):
         self.showNormal()
+        
         self.activateWindow()
         self.raise_()
+        self.txtOutputAggregation.setFocus()
         
     def resizeEvent(self, event):
         self.populateList(False)
