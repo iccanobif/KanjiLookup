@@ -1,5 +1,5 @@
 import re
-#import utf8console
+import utf8console
 import time
 import romkan
 import lookup
@@ -61,12 +61,13 @@ class PerformanceStatistics:
 
 class EdictDictionary:
 
-    dictionary = None
+    dictionaryJ2E = None
+    ditcionaryE2J = None
 
     def __init__(self):
         self._splitterCache = dict()
-        if EdictDictionary.dictionary is not None:
-            self.dictionary = EdictDictionary.dictionary
+        if EdictDictionary.dictionaryJ2E is not None:
+            self.dictionaryJ2E = EdictDictionary.dictionaryJ2E
         else:
             self.__loadDictionary() #comment here to do lazy loading of dictionary
     
@@ -166,17 +167,24 @@ class EdictDictionary:
 
         return newWords
         
-    def __addWordToDictionary(self, word, entry):
-        if word not in self.dictionary:
-            self.dictionary[word] = [entry]
+    def __addWordToDictionaryJ2E(self, word, entry):
+        if word not in self.dictionaryJ2E:
+            self.dictionaryJ2E[word] = [entry]
         else:
-            self.dictionary[word].append(entry)
+            self.dictionaryJ2E[word].append(entry)
+            
+    def __addWordToDictionaryE2J(self, word, entry):
+        if word not in self.dictionaryE2J:
+            self.dictionaryE2J[word] = [entry]
+        else:
+            self.dictionaryE2J[word].append(entry)
         
     def __loadDictionary(self):
         print("Loading edict2... ", end="", flush=True)
         starttime = time.clock()
-        self.dictionary = dict()
-        EdictDictionary.dictionary = self.dictionary #make a static copy 
+        self.dictionaryJ2E = dict()
+        self.dictionaryE2J = dict()
+        EdictDictionary.dictionaryJ2E = self.dictionaryJ2E #make a static copy 
         with open("datasets/edict2u", "r", encoding="utf8") as f:
             # stats = PerformanceStatistics()
             for line in f.readlines():
@@ -190,7 +198,17 @@ class EdictDictionary:
                 
                 for k in kanjis:
                     if k == "": continue
-                    self.__addWordToDictionary(k, line)
+                    self.__addWordToDictionaryJ2E(k, line)
+                    
+                for word in set(line[boundary:].replace("/", " ").split(" ")):
+                    if len(word) > 1:
+                        self.__addWordToDictionaryE2J(word, line.strip())
+                    
+        # remove really common english words and bogus EDICT expressions like (adj-i) or (1) 
+        # (they make the GUI slower, and it wouldn't be useful to search for them in the dictionary, anyway).
+        for k in list(filter(lambda x: len(self.dictionaryE2J[x]) > 1000, self.dictionaryE2J.keys())):
+            del self.dictionaryE2J[k]
+        
         print("OK (" + str(time.clock() - starttime) + " seconds)")
         print("Loading enamdict... ", end="", flush=True)
         starttime = time.clock()
@@ -201,10 +219,10 @@ class EdictDictionary:
                 secondaryReadingStart = name.find("[")
                 secondaryReadingEnd = name.find("]")
                 if secondaryReadingStart == -1: # there's only one reading
-                    self.__addWordToDictionary(name.strip(), line)
+                    self.__addWordToDictionaryJ2E(name.strip(), line)
                 else:
-                    self.__addWordToDictionary(name[0:secondaryReadingStart].strip(), line)
-                    self.__addWordToDictionary(name[secondaryReadingStart+1:secondaryReadingEnd].strip(), line)
+                    self.__addWordToDictionaryJ2E(name[0:secondaryReadingStart].strip(), line)
+                    self.__addWordToDictionaryJ2E(name[secondaryReadingStart+1:secondaryReadingEnd].strip(), line)
         print("OK (" + str(time.clock() - starttime) + " seconds)")
         # stats.printStats()
 
@@ -214,16 +232,25 @@ class EdictDictionary:
         return text
 
     def getTranslation(self, text):
-        if self.dictionary is None:
+        if self.dictionaryJ2E is None:
             __loadDictionary()
+            
+        output = []
         
+        text = text.lower()
+        
+        if text in self.dictionaryE2J:
+            output += self.dictionaryE2J[text]
+         
         text = self.normalizeInput(text)
         
-        if text not in self.dictionary:
-            return None
-        
-        output = []
-        for entry in self.dictionary[text]:
+        if text not in self.dictionaryJ2E:
+            if output == []:
+                return None
+            else:
+                return output
+                
+        for entry in self.dictionaryJ2E[text]:
             # print("entry", entry)
             entry = entry.strip().strip("/")
             entryIdIndex = entry.rfind("/Ent") #remove entry id (eg. "EntL1000920X")
@@ -240,7 +267,7 @@ class EdictDictionary:
         for radicalList in re.findall("{.*?}", text):
             splitted = radicalList[1:-1].lower().replace("、", ",").split(",")
             text = text.replace(radicalList, "[" + "|".join(lookup.getKanjiFromRadicals(splitted)) + "]")
-        return list(sorted(filter(lambda x: re.search("^" + text + "$", x) is not None, self.dictionary.keys())))
+        return list(sorted(filter(lambda x: re.search("^" + text + "$", x) is not None, self.dictionaryJ2E.keys())))
         
     # The following sentence still trips the splitter up: it does がそ/れ instead of が/それ (れ is the stem of ichidan verb れる)...
     # print(splitSentence("あなたがそれを気に入るのはわかっていました。"))
@@ -253,7 +280,7 @@ class EdictDictionary:
             return []
         for i in range(len(text)+1, 0, -1):
             firstWord = text[0:i]
-            if self.normalizeInput(firstWord) in self.dictionary:
+            if self.normalizeInput(firstWord) in self.dictionaryJ2E or firstWord.lower() in self.dictionaryE2J:
                 return [firstWord] + self.splitSentencePrioritizeFirst(text[i:])
                 
         return [text[0]] + self.splitSentencePrioritizeFirst(text[1:])
@@ -268,7 +295,7 @@ class EdictDictionary:
         for length in range(len(text), 0, -1):
             for i in range(0, len(text) - length + 1):
                 t = text[i:i+length]
-                if self.normalizeInput(t) in self.dictionary:
+                if self.normalizeInput(t) in self.dictionaryJ2E or t in self.dictionaryE2J:
                     return self.splitSentencePrioritizeLongest(text[0:i]) + [t] + self.splitSentencePrioritizeLongest(text[i+length:])
         return [text]
         
@@ -284,7 +311,12 @@ class EdictDictionary:
 
 if __name__ == '__main__':
     d = EdictDictionary()
-    # print(d.getTranslation("hiraita"))
+    #print(d.getTranslation("hiraita"))
+    #print("\n".join(d.dictionaryE2J["me"]))
+    for w in sorted(d.dictionaryE2J.keys(), key=lambda x: -len(d.dictionaryE2J[x])):
+        if len(d.dictionaryE2J[w]) == 1:
+            quit()
+        print(w, len(d.dictionaryE2J[w]))
     # print(d.getTranslation("泣き"))
     # print(d.getTranslation("食べた"))
     # print(d.getTranslation("泣きたい"))
