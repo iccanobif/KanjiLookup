@@ -175,6 +175,7 @@ class MainWindow(QWidget):
                 text += r + ": " + lookup.getRadicalName(r) + "<br/>"
 
         popup = Popup(self, text)
+        print("popup.show()")
         popup.show()
         
     def showTranslations(self, word):
@@ -205,6 +206,7 @@ class MainWindow(QWidget):
             text = self.txtOutputAggregation.text()
 
         popup = ListPopup(self)
+        print("popup.show(self.dict.findWordsFromFragment(text))")
         popup.show(self.dict.findWordsFromFragment(text))
         
         self.unsetCursor()
@@ -261,6 +263,7 @@ class MainWindow(QWidget):
         
 class Popup(QDialog):
     def __init__(self, parent, text):
+        print("def __init__(self, parent, text):")
         QDialog.__init__(self, parent)
         self.setWindowModality(Qt.WindowModal)
         self.setWindowTitle("Kanji lookup")
@@ -276,6 +279,7 @@ class Popup(QDialog):
         
 class ListPopup(QDialog):
     def __init__(self, parent):
+        print("def __init__(self, parent):")
         QDialog.__init__(self, parent)
         self.entries = set()
         
@@ -286,6 +290,7 @@ class ListPopup(QDialog):
         self.setLayout(layout)
         
     def show(self, items):
+        print("def show(self, items):")
         for i in items:
             self.list.addItem(i)
         QDialog.show(self)
