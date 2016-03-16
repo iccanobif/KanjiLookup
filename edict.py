@@ -62,7 +62,7 @@ class PerformanceStatistics:
 class EdictDictionary:
 
     dictionaryJ2E = None
-    ditcionaryE2J = None
+    dictionaryE2J = None
 
     def __init__(self):
         self._splitterCache = dict()
