@@ -3,6 +3,7 @@ import utf8console
 import time
 import romkan
 import lookup
+import sqlite3
 
 # EDICT2 entry samples:
 # 煆焼;か焼 [かしょう] /(n,vs) calcination/calcining/EntL2819620/
@@ -61,206 +62,59 @@ class PerformanceStatistics:
 
 class EdictDictionary:
 
-    dictionaryJ2E = None
-    dictionaryE2J = None
-
+    connection = None
+    
     def __init__(self):
         self._splitterCache = dict()
-        if EdictDictionary.dictionaryJ2E is not None:
-            self.dictionaryJ2E = EdictDictionary.dictionaryJ2E
-        else:
-            self.__loadDictionary() #comment here to do lazy loading of dictionary
+        self.connection = sqlite3.connect("db.db")
     
     class DictionaryEntry:
         def __init__(self):
             self.translation = ""
             self.isConjugated = False
             self.conjugationType = ""
-
-    def extendWithConjugations(self, words, translation):
-
-        m = re.search("v1|v5aru|v5b|v5g|v5k-s|v5k|v5m|v5n|v5r-i|v5r|v5s|v5t|v5u-s|v5uru|v5u|v5|adj-ix|adj-i", translation)
-        if m is None:
-            return words
-        type = m.group()
-        if type in ["v5", "v5aru", "v5r-i", "v5u-s", "v5uru"]:
-            return words # I don't know how to conjugate this stuff (yet)
-            
-        newWords = list(words)
         
-        #TODO: imperative
-        
-        for w in words:
-            if w == "":
-                continue
-            
-            root = w[:-1]
-            def add(w):
-                newWords.append(root + w)
-                
-            if type == "adj-i":
-                add("くない") # negative
-                add("く")    # adverbial form
-                add("かった") # past
-                add("くなかった") # past negative
-                add("くて") # te-form
-            if type == "adj-ix":
-                newWords.append(w[:-2] + "よくない") # negative
-                newWords.append(w[:-2] + "よく") # adverbial form
-                newWords.append(w[:-2] + "よかった") # past
-                newWords.append(w[:-2] + "よくなかった") # past negative
-                newWords.append(w[:-2] + "よくて") # te-form
-            if type == "v1":
-                add("") # stem
-                add("ます") # masu-form
-                add("ない") # negative
-                add("た") # past
-                add("なかった") # past negative
-                add("て") # -te form
-                add("られる") # potential + passive (they're the same for ichidan verbs...)
-                add("させる") # causative
-                add("よう") # volitive
-                add("たい") # tai-form
-                add("ず") # zu-form
-            elif type == "v5s":
-                add("した") # past
-                add("して") # -te form
-            elif type == "v5k":
-                add("いた") # past
-                add("いて") # -te form
-            elif type == "v5g":
-                add("いだ") # past
-                add("いで") # -te form
-            elif type == "v5k-s": # for verbs ending in 行く
-                add("った") # past
-                add("いて") # -te form
-            elif type in ["v5b", "v5m", "v5n"]:
-                add("んだ") # past
-                add("んで") # -te form
-            elif type in ["v5r", "v5t", "v5u"]:
-                add("った") # past
-                add("って") # -te form
-            
-            firstNegativeKana = ""
-            stemKana = ""
-            
-                                         # potential # volitive   
-            if type in ["v5k", "v5k-s"]: add("ける"); add("こう"); stemKana = "き"; firstNegativeKana = "か"
-            if type == "v5g":            add("げる"); add("ごう"); stemKana = "ぎ"; firstNegativeKana = "が"
-            if type == "v5b":            add("べる"); add("ぼう"); stemKana = "び"; firstNegativeKana = "ば"
-            if type == "v5m":            add("める"); add("もう"); stemKana = "み"; firstNegativeKana = "ま"
-            if type == "v5n":            add("ねる"); add("のう"); stemKana = "に"; firstNegativeKana = "な"
-            if type == "v5r":            add("れる"); add("ろう"); stemKana = "り"; firstNegativeKana = "ら"
-            if type == "v5t":            add("てる"); add("とう"); stemKana = "ち"; firstNegativeKana = "た" 
-            if type == "v5u":            add("える"); add("おう"); stemKana = "い"; firstNegativeKana = "わ" 
-            if type == "v5s":            add("せる"); add("そう"); stemKana = "し"; firstNegativeKana = "さ" 
-
-            if type[0:2] == "v5":
-                add(firstNegativeKana + "ない")  # negative
-                add(firstNegativeKana + "なかった")  # past negative
-                add(firstNegativeKana + "せる")  # causative
-                add(firstNegativeKana + "れる")  # passive
-                add(firstNegativeKana + "ず")  # zu-form
-                add(stemKana) # stem
-                add(stemKana + "たい") # tai-form
-                add(stemKana + "ます") # masu-form
-
-        return newWords
-        
-    def __addWordToDictionaryJ2E(self, word, entry):
-        if word not in self.dictionaryJ2E:
-            self.dictionaryJ2E[word] = [entry]
-        else:
-            self.dictionaryJ2E[word].append(entry)
-            
-    def __addWordToDictionaryE2J(self, word, entry):
-        if word not in self.dictionaryE2J:
-            self.dictionaryE2J[word] = [entry]
-        else:
-            self.dictionaryE2J[word].append(entry)
-        
-    def __loadDictionary(self):
-        print("Loading edict2... ", end="", flush=True)
-        starttime = time.clock()
-        self.dictionaryJ2E = dict()
-        self.dictionaryE2J = dict()
-        EdictDictionary.dictionaryJ2E = self.dictionaryJ2E #make a static copy 
-        with open("datasets/edict2u", "r", encoding="utf8") as f:
-            # stats = PerformanceStatistics()
-            for line in f.readlines():
-                # stats.done("linea")
-                boundary = line.find("/")
-                kanjis = line[0:boundary].lower()
-                kanjis = re.sub("\[|\]| |\(.*?\)", ";", kanjis) #remove anything that's inside ()
-                kanjis = romkan.katakana_to_hiragana(kanjis)
-                kanjis = kanjis.split(";")
-                kanjis = self.extendWithConjugations(kanjis, line[boundary:])
-                
-                for k in kanjis:
-                    if k == "": continue
-                    self.__addWordToDictionaryJ2E(k, line)
-                    
-                for word in set(line[boundary:].replace("/", " ").split(" ")):
-                    if len(word) > 1:
-                        self.__addWordToDictionaryE2J(word, line.strip())
-                    
-        # remove really common english words and bogus EDICT expressions like (adj-i) or (1) 
-        # (they make the GUI slower, and it wouldn't be useful to search for them in the dictionary, anyway).
-        for k in list(filter(lambda x: len(self.dictionaryE2J[x]) > 1000, self.dictionaryE2J.keys())):
-            del self.dictionaryE2J[k]
-        
-        print("OK (" + str(time.clock() - starttime) + " seconds)")
-        print("Loading enamdict... ", end="", flush=True)
-        starttime = time.clock()
-        with open("datasets/enamdict.utf", "r", encoding="utf8") as f:
-            for line in f.readlines():
-                line = line.strip()
-                name = line[0:line.find("/")]
-                secondaryReadingStart = name.find("[")
-                secondaryReadingEnd = name.find("]")
-                if secondaryReadingStart == -1: # there's only one reading
-                    self.__addWordToDictionaryJ2E(name.strip(), line)
-                else:
-                    self.__addWordToDictionaryJ2E(name[0:secondaryReadingStart].strip(), line)
-                    self.__addWordToDictionaryJ2E(name[secondaryReadingStart+1:secondaryReadingEnd].strip(), line)
-        print("OK (" + str(time.clock() - starttime) + " seconds)")
-        # stats.printStats()
-
     def normalizeInput(self, text):
         text = romkan.to_hiragana(text.replace(" ", ""))    
         text = romkan.katakana_to_hiragana(text.lower())
         return text
 
     def getTranslation(self, text):
-        if self.dictionaryJ2E is None:
-            __loadDictionary()
             
         output = []
         
         text = text.lower()
-        
-        if text in self.dictionaryE2J:
-            output += self.dictionaryE2J[text]
-         
+                 
         text = self.normalizeInput(text)
         
-        if text not in self.dictionaryJ2E:
-            if output == []:
-                return None
-            else:
-                return output
-                
-        for entry in self.dictionaryJ2E[text]:
-            # print("entry", entry)
-            entry = entry.strip().strip("/")
-            entryIdIndex = entry.rfind("/Ent") #remove entry id (eg. "EntL1000920X")
-            # print("entryIdIndex", entryIdIndex)
-            if entryIdIndex != -1:
-                output.append(entry[:entry.rfind("/Ent")]) 
-            else:
-                output.append(entry) 
         
-        return output
+                
+        query = """
+                select a.content
+                  from edict_lemmas l
+                  join edict_articles a on a.id = l.articleId
+                 where lemma = '{}' 
+                 """.format(text.replace("'", "\'"))
+        
+        for entry in self.connection.execute(query).fetchall():
+            output.append(entry[0])
+
+        query = """
+                select ka.content
+                  from kotobank_lemmas kl
+                  join kotobank_rel_lemma_article rel on kl.id = rel.lemmaid
+                  join kotobank_articles ka on ka.id = rel.articleId
+                 where lemmatitle = '{}' 
+                       and ka.dictionary = 'デジタル大辞泉の解説'
+                """.format(text.replace("'", "\'"))
+                
+        for entry in self.connection.execute(query).fetchall():
+            output.append(entry[0])
+
+        if output == []:
+            return None
+        else:
+            return output
             
     def findWordsFromFragment(self, text):
         # Replace lists of radical names (ex. "{woman,roof}") with the actual possible kanjis
@@ -280,7 +134,8 @@ class EdictDictionary:
             return []
         for i in range(len(text)+1, 0, -1):
             firstWord = text[0:i]
-            if self.normalizeInput(firstWord) in self.dictionaryJ2E or firstWord.lower() in self.dictionaryE2J:
+            # if self.normalizeInput(firstWord) in self.dictionaryJ2E:
+            if self.getTranslation(firstWord) is not None:
                 return [firstWord] + self.splitSentencePrioritizeFirst(text[i:])
                 
         return [text[0]] + self.splitSentencePrioritizeFirst(text[1:])
@@ -295,7 +150,7 @@ class EdictDictionary:
         for length in range(len(text), 0, -1):
             for i in range(0, len(text) - length + 1):
                 t = text[i:i+length]
-                if self.normalizeInput(t) in self.dictionaryJ2E or t in self.dictionaryE2J:
+                if self.getTranslation(firstWord) is not None:
                     return self.splitSentencePrioritizeLongest(text[0:i]) + [t] + self.splitSentencePrioritizeLongest(text[i+length:])
         return [text]
         
@@ -313,11 +168,11 @@ if __name__ == '__main__':
     d = EdictDictionary()
     #print(d.getTranslation("hiraita"))
     #print("\n".join(d.dictionaryE2J["me"]))
-    for w in sorted(d.dictionaryE2J.keys(), key=lambda x: -len(d.dictionaryE2J[x])):
-        if len(d.dictionaryE2J[w]) == 1:
-            quit()
-        print(w, len(d.dictionaryE2J[w]))
-    # print(d.getTranslation("泣き"))
+    # for w in sorted(d.dictionaryE2J.keys(), key=lambda x: -len(d.dictionaryE2J[x])):
+        # if len(d.dictionaryE2J[w]) == 1:
+            # quit()
+        # print(w, len(d.dictionaryE2J[w]))
+    print(d.getTranslation("泣き"))
     # print(d.getTranslation("食べた"))
     # print(d.getTranslation("泣きたい"))
     # print(d.getTranslation("行った"))
