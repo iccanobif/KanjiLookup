@@ -8,7 +8,7 @@ from PySide.QtCore import *
 from PySide.QtGui import *
 
 import win32con
-import hotkeythread
+# import hotkeythread
 
 app = QApplication(sys.argv)
 pixmap = QPixmap("splash.png")
@@ -113,9 +113,9 @@ class MainWindow(QWidget):
         # pid = ctypes.windll.kernel32.GetCurrentProcessId()
         # ctypes.windll.user32.AllowSetForegroundWindow(pid)
         
-        t = hotkeythread.HotkeyThread()
-        t.registerHotkey(win32con.MOD_CONTROL | win32con.MOD_ALT, ord("K"), self.focusWindow, self)
-        t.start()
+        # t = hotkeythread.HotkeyThread()
+        # t.registerHotkey(win32con.MOD_CONTROL | win32con.MOD_ALT, ord("K"), self.focusWindow, self)
+        # t.start()
         
     def focusWindow(self):
         self.showNormal()
@@ -264,30 +264,54 @@ class MainWindow(QWidget):
 class Popup(QDialog):
     def __init__(self, parent, text):
         print("def __init__(self, parent, text):")
+        #va in errore tra qui...
+        print("QDialog.__init__(self, parent)")
         QDialog.__init__(self, parent)
+        #...e qui
+        print("self.setWindowModality(Qt.WindowModal)")
         self.setWindowModality(Qt.WindowModal)
+        print("self.setWindowTitle(Kanji lookup)")
         self.setWindowTitle("Kanji lookup")
-        
-        label = QLabel(self)
-        label.setStyleSheet("font-size: 40px")
-        label.setWordWrap(True)
-        label.setText(text)
-        layout = QHBoxLayout(self)
-        layout.addWidget(label)
-        self.setLayout(layout)
+        print("label = QLabel(self)")
+        self.label = QLabel(self) #VA IN ERRORE QUI!!!!!!!
+        print("label.setStyleSheet(font-size: 40px)")
+        self.label.setStyleSheet("font-size: 40px")
+        print("label.setWordWrap(True)")
+        self.label.setWordWrap(True)
+        print("label.setText(text)")
+        self.label.setText(text)
+        print("layout = QHBoxLayout(self)")
+        self.layout = QHBoxLayout(self)
+        print("layout.addWidget(label)")
+        self.layout.addWidget(self.label)
+        print("self.setLayout(layout)")
+        self.setLayout(self.layout)
+        print("self.adjustSize()")
         self.adjustSize()
         
 class ListPopup(QDialog):
     def __init__(self, parent):
         print("def __init__(self, parent):")
+        #va in errore tra qui...
+        print("QDialog.__init__(self, parent)")
         QDialog.__init__(self, parent)
+        
+        
+        print("self.entries = set()")
         self.entries = set()
         
+        print("self.list = QListWidget(self)")
         self.list = QListWidget(self)
+        print("self.list.setStyleSheet(""font-size: 30px"")")
         self.list.setStyleSheet("font-size: 30px")
+        print("layout = QHBoxLayout(self)")
         layout = QHBoxLayout(self)
+        print("layout.addWidget(self.list)")
         layout.addWidget(self.list)
+        print("self.setLayout(layout)")
         self.setLayout(layout)
+        print("FINE def __init__(self, parent):")
+        #...e qui
         
     def show(self, items):
         print("def show(self, items):")
@@ -299,4 +323,4 @@ window = MainWindow()
 window.show()
 splashScreen.finish(window)
 app.exec_()
-os._exit(0) # Kill the global hotkey thread. This is supposed to be a very bad thing to do, but I'm a very bad person and I do not care.
+# os._exit(0) # Kill the global hotkey thread. This is supposed to be a very bad thing to do, but I'm a very bad person and I do not care.
