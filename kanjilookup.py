@@ -184,7 +184,7 @@ class MainWindow(QWidget):
         if translations is None:
             self.txtTranslations.setPlainText("-- not found --")
         else:
-            self.txtTranslations.setPlainText("\n--------\n".join(translations))
+            self.txtTranslations.setHtml("<br/>--------<br/>".join(translations).replace("\n", "<br/>"))
 
     def onbtnShowHistoryClicked(self):
         self.historyWindow.show()
