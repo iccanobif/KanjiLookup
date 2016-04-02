@@ -87,8 +87,6 @@ class EdictDictionary:
                  
         text = self.normalizeInput(text)
         
-        
-                
         query = """
                 select a.content
                   from edict_lemmas l
@@ -98,15 +96,24 @@ class EdictDictionary:
         
         for entry in self.connection.execute(query).fetchall():
             output.append(entry[0])
+        
+        katakanaText = romkan.hiragana_to_katakana(text)
 
         query = """
-                select ka.content
+                select '<b>' || kl.lemmatitle || ' - ' || kl.lemmasubtitle || '</b><br/>' || ka.content
                   from kotobank_lemmas kl
                   join kotobank_rel_lemma_article rel on kl.id = rel.lemmaid
                   join kotobank_articles ka on ka.id = rel.articleId
                  where lemmatitle = '{}' 
                        and ka.dictionary = 'デジタル大辞泉の解説'
-                """.format(text.replace("'", "\'"))
+                 union
+                 select '<b>' || kl.lemmatitle || ' - ' || kl.lemmasubtitle || '</b><br/>' || ka.content
+                  from kotobank_lemmas kl
+                  join kotobank_rel_lemma_article rel on kl.id = rel.lemmaid
+                  join kotobank_articles ka on ka.id = rel.articleId
+                 where lemmasubtitle = '{}' 
+                       and ka.dictionary = 'デジタル大辞泉の解説'
+                """.format(text.replace("'", "\'"), katakanaText.replace("'", "\'"))
                 
         for entry in self.connection.execute(query).fetchall():
             output.append(entry[0])
