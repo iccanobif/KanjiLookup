@@ -66,6 +66,7 @@ class EdictDictionary:
     
     def __init__(self):
         self._splitterCache = dict()
+        self._translationsCache = dict()
         self.connection = sqlite3.connect("db.db")
     
     class DictionaryEntry:
@@ -80,48 +81,72 @@ class EdictDictionary:
         return text
 
     def getTranslation(self, text):
-            
+        if text in self._translationsCache:
+            return self._translationsCache[text]
+
         output = []
         
         text = text.lower()
                  
         text = self.normalizeInput(text)
         
-        query = """
-                select a.content
-                  from edict_lemmas l
-                  join edict_articles a on a.id = l.articleId
-                 where lemma = '{}' 
-                 """.format(text.replace("'", "\'"))
-        
-        for entry in self.connection.execute(query).fetchall():
-            output.append(entry[0])
-        
         katakanaText = romkan.hiragana_to_katakana(text)
 
         query = """
-                select '<b>' || kl.lemmatitle || ' - ' || kl.lemmasubtitle || '</b><br/>' || ka.content
+                select a.content,
+                       1 as o
+                  from edict_lemmas l
+                  join edict_articles a on a.id = l.articleId
+                 where lemma = '{0}' 
+                 union 
+                select '<b>' || kl.lemmatitle || ' - ' || kl.lemmasubtitle || '</b><br/>' || ka.content,
+                       2 as o
                   from kotobank_lemmas kl
                   join kotobank_rel_lemma_article rel on kl.id = rel.lemmaid
                   join kotobank_articles ka on ka.id = rel.articleId
-                 where lemmatitle = '{}' 
+                 where lemmatitle = '{0}' 
                        and ka.dictionary = 'デジタル大辞泉の解説'
                  union
-                 select '<b>' || kl.lemmatitle || ' - ' || kl.lemmasubtitle || '</b><br/>' || ka.content
+                 select '<b>' || kl.lemmatitle || ' - ' || kl.lemmasubtitle || '</b><br/>' || ka.content,
+                        2 as o
                   from kotobank_lemmas kl
                   join kotobank_rel_lemma_article rel on kl.id = rel.lemmaid
                   join kotobank_articles ka on ka.id = rel.articleId
-                 where lemmasubtitle = '{}' 
+                 where lemmasubtitle = '{1}' 
                        and ka.dictionary = 'デジタル大辞泉の解説'
+                 order by o
                 """.format(text.replace("'", "\'"), katakanaText.replace("'", "\'"))
-                
+
         for entry in self.connection.execute(query).fetchall():
             output.append(entry[0])
 
+        self._translationsCache[text] = output
+        
         if output == []:
             return None
         else:
             return output
+            
+    def existsItem(self, text):
+        text = text.lower()
+        text = self.normalizeInput(text)
+        katakanaText = romkan.hiragana_to_katakana(text)
+
+        query = """
+                select 1
+                  from edict_lemmas l
+                 where lemma = '{0}' 
+                 union all
+                select 1
+                  from kotobank_lemmas kl
+                 where lemmatitle = '{0}'
+                 union all
+                 select 1
+                  from kotobank_lemmas kl
+                 where lemmasubtitle = '{1}'
+                """.format(text.replace("'", "\'"), katakanaText.replace("'", "\'"))
+
+        return len(self.connection.execute(query).fetchall()) > 0
             
     def findWordsFromFragment(self, text):
         # Replace lists of radical names (ex. "{woman,roof}") with the actual possible kanjis
@@ -142,7 +167,7 @@ class EdictDictionary:
         for i in range(len(text)+1, 0, -1):
             firstWord = text[0:i]
             # if self.normalizeInput(firstWord) in self.dictionaryJ2E:
-            if self.getTranslation(firstWord) is not None:
+            if self.existsItem(firstWord):
                 return [firstWord] + self.splitSentencePrioritizeFirst(text[i:])
                 
         return [text[0]] + self.splitSentencePrioritizeFirst(text[1:])

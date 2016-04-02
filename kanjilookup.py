@@ -1,6 +1,7 @@
 import sys
 import os
 import re
+import time
 if sys.executable.endswith("pythonw.exe"):
     sys.stderr = open(os.devnull, "w")
 
@@ -184,7 +185,9 @@ class MainWindow(QWidget):
         if translations is None:
             self.txtTranslations.setPlainText("-- not found --")
         else:
+            print(str(time.clock()), "self.txtTranslations.setHtml()")
             self.txtTranslations.setHtml("<br/>--------<br/>".join(translations).replace("\n", "<br/>"))
+            print(str(time.clock()), "self.txtTranslations.setHtml() - fine")
 
     def onbtnShowHistoryClicked(self):
         self.historyWindow.show()
@@ -212,6 +215,7 @@ class MainWindow(QWidget):
         self.unsetCursor()
         
     def ontxtOutputAggregationTextChanged(self):
+        print(self.txtOutputAggregation.text())
         self.historyWindow.addEntry(self.txtOutputAggregation.text())
         
         input = self.txtOutputAggregation.text()
@@ -221,19 +225,18 @@ class MainWindow(QWidget):
             self.lblSplittedWordsList.setText("")
             return
         
+        print(str(time.clock()), "words = self.dict.splitSentence(input)")
         words = self.dict.splitSentence(input)
         
-        self.showTranslations(words[0])
-        
+        print(str(time.clock()), "text = ''")
         text = ""
         for w in words:
             text += "<a href='word'>word</a> ".replace("word", w)
+        print(str(time.clock()), "self.lblSplittedWordsList.setText(text)")
         self.lblSplittedWordsList.setText(text)
-        
-        self.handleSelectionChangesOrCursorMovements()
-        
-        
+                
     def handleSelectionChangesOrCursorMovements(self):
+        print(str(time.clock()), "self.handleSelectionChangesOrCursorMovements() - inizio")
         if self.txtOutputAggregation.hasSelectedText():
             self.showTranslations(self.txtOutputAggregation.selectedText())
         else:
