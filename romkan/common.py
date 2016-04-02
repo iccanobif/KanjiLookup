@@ -574,14 +574,14 @@ def expand_consonant(str):
 
 #hiragana from 12353 to 12435 (included)
 #katanaka from 12449 to 12531 (included)
-def hiragana_to_katakana(str):
-    output = ""
-    for c in str:
-        if ord(c) >= 12353 and ord(c) <= 12435:
-            output += chr(ord(c) + 96)
-        else:
-            output += c
-    return output
+# def hiragana_to_katakana(str):
+    # output = ""
+    # for c in str:
+        # if ord(c) >= 12353 and ord(c) <= 12435:
+            # output += chr(ord(c) + 96)
+        # else:
+            # output += c
+    # return output
     
 # def katakana_to_hiragana(str):
     # output = ""
@@ -598,7 +598,11 @@ for i in range(12449, 12532):
 _higarana = ""
 for i in range(12353, 12436):
     _higarana += chr(i)
-_trans = str.maketrans(_katakana, _higarana)
+_transkatatohira = str.maketrans(_katakana, _higarana)
+_transhiratokata = str.maketrans(_higarana, _katakana)
 
 def katakana_to_hiragana(str):
-    return str.translate(_trans)
+    return str.translate(_transkatatohira)
+    
+def hiragana_to_katakana(str):
+    return str.translate(_transhiratokata)
