@@ -74,6 +74,10 @@ class MainWindow(QWidget):
         self.txtTranslations = QTextEdit(self)
         self.txtTranslations.setReadOnly(True)
         self.txtTranslations.setStyleSheet("font-size: 25px")
+        #stuff for making HTML a bit faster (http://stackoverflow.com/questions/3120258/qtextedit-inserthtml-is-very-slow)
+        self.txtTranslations.setAcceptRichText(False)
+        self.txtTranslations.setContextMenuPolicy(Qt.NoContextMenu)
+        self.txtTranslations.setUndoRedoEnabled(False)
 
         self.lblStrokeCount = QLabel("Stroke count:")
         self.spnStrokeCount = QSpinBox(self)
@@ -176,7 +180,7 @@ class MainWindow(QWidget):
                 text += r + ": " + lookup.getRadicalName(r) + "<br/>"
 
         popup = Popup(self, text)
-        print("popup.show()")
+        # print("popup.show()")
         popup.show()
         
     def showTranslations(self, word):
@@ -186,6 +190,8 @@ class MainWindow(QWidget):
             self.txtTranslations.setPlainText("-- not found --")
         else:
             print(str(time.clock()), "self.txtTranslations.setHtml()")
+            if len(translations) > 10:
+                translations = translations[0:10] + ["..."]
             self.txtTranslations.setHtml("<br/>--------<br/>".join(translations).replace("\n", "<br/>"))
             print(str(time.clock()), "self.txtTranslations.setHtml() - fine")
 
@@ -209,7 +215,7 @@ class MainWindow(QWidget):
             text = self.txtOutputAggregation.text()
 
         popup = ListPopup(self)
-        print("popup.show(self.dict.findWordsFromFragment(text))")
+        # print("popup.show(self.dict.findWordsFromFragment(text))")
         popup.show(self.dict.findWordsFromFragment(text))
         
         self.unsetCursor()
@@ -225,18 +231,18 @@ class MainWindow(QWidget):
             self.lblSplittedWordsList.setText("")
             return
         
-        print(str(time.clock()), "words = self.dict.splitSentence(input)")
+        # print(str(time.clock()), "words = self.dict.splitSentence(input)")
         words = self.dict.splitSentence(input)
         
-        print(str(time.clock()), "text = ''")
+        # print(str(time.clock()), "text = ''")
         text = ""
         for w in words:
             text += "<a href='word'>word</a> ".replace("word", w)
-        print(str(time.clock()), "self.lblSplittedWordsList.setText(text)")
+        # print(str(time.clock()), "self.lblSplittedWordsList.setText(text)")
         self.lblSplittedWordsList.setText(text)
                 
     def handleSelectionChangesOrCursorMovements(self):
-        print(str(time.clock()), "self.handleSelectionChangesOrCursorMovements() - inizio")
+        # print(str(time.clock()), "self.handleSelectionChangesOrCursorMovements() - inizio")
         if self.txtOutputAggregation.hasSelectedText():
             self.showTranslations(self.txtOutputAggregation.selectedText())
         else:

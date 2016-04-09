@@ -39,7 +39,7 @@ class EdictDictionary:
     
     def __init__(self):
         self._splitterCache = dict()
-        self._translationsCache = dict()
+        # self._translationsCache = dict()
         self.connection = sqlite3.connect("db.db")
     
     class DictionaryEntry:
@@ -54,9 +54,13 @@ class EdictDictionary:
         return text
 
     def getTranslation(self, text):
-        if text in self._translationsCache:
-            return self._translationsCache[text]
+        print(str(time.clock()), "getTranslation(self, text) - INIZIO")
+        # if text in self._translationsCache:
+            # return self._translationsCache[text]
 
+        if text.strip() == "":
+            return None
+            
         output = []
         
         text = text.lower()
@@ -71,7 +75,7 @@ class EdictDictionary:
                   from edict_lemmas l
                   join edict_articles a on a.id = l.articleId
              left join pitch_accents acc on acc.kanji = l.uninflectedLemma
-                 where l.lemma = '{0}' 
+                 where l.lemma = '{text}' 
                  union
                 select replace(
                         '<b>' || kl.lemmatitle || ' - ' || kl.lemmasubtitle || ' (' || ifnull(acc.base_form, '') || ')</b><br/>' || ka.content,
@@ -82,18 +86,22 @@ class EdictDictionary:
                   join kotobank_rel_lemma_article rel on kl.id = rel.lemmaid
                   join kotobank_articles ka on ka.id = rel.articleId
              left join pitch_accents acc on acc.kanji = kl.lemmatitle
-                 where (kl.lemmatitle = '{0}' 
-                        or kl.lemmasubtitle = '{1}'
-                        or kl.lemmatitle in (select el.uninflectedlemma from edict_lemmas el where el.lemma = '{0}')
-                        or kl.lemmasubtitle in (select el.uninflectedlemma from edict_lemmas el where el.lemma = '{0}')
+                 where (kl.lemmatitle = '{text}' 
+                        or kl.lemmasubtitle = '{katakanaText}'
+                        or kl.lemmatitle in (select el.uninflectedlemma from edict_lemmas el where el.lemma = '{text}')
+                        or kl.lemmasubtitle in (select el.uninflectedlemma from edict_lemmas el where el.lemma = '{katakanaText}')
                  ) and ka.dictionary = 'デジタル大辞泉の解説'
                  order by o
-                """.format(text.replace("'", "\'"), katakanaText.replace("'", "\'"))
+                """.format(text = text.replace("'", "\'"), katakanaText = katakanaText.replace("'", "\'"))
 
+        print(str(time.clock()), "puppamelo")
         for entry in self.connection.execute(query).fetchall():
+            print(str(time.clock()), "oh yeah")
             output.append(entry[0])
 
-        self._translationsCache[text] = output
+        # self._translationsCache[text] = output
+        
+        print(str(time.clock()), "getTranslation(self, text) - FINE")
         
         if output == []:
             return None
@@ -101,6 +109,7 @@ class EdictDictionary:
             return output
             
     def existsItem(self, text):
+        # print(str(time.clock()), "existsItem(self, text) - INIZIO")
         text = text.lower()
         text = self.normalizeInput(text)
         katakanaText = romkan.hiragana_to_katakana(text)
@@ -119,7 +128,9 @@ class EdictDictionary:
                  where lemmasubtitle = '{1}'
                 """.format(text.replace("'", "\'"), katakanaText.replace("'", "\'"))
 
-        return len(self.connection.execute(query).fetchall()) > 0
+        output = len(self.connection.execute(query).fetchall()) > 0
+        # print(str(time.clock()), "existsItem(self, text) - FINE")
+        return output
             
     def findWordsFromFragment(self, text):
         # Replace lists of radical names (ex. "{woman,roof}") with the actual possible kanjis
@@ -163,9 +174,10 @@ class EdictDictionary:
     def splitSentence(self, text):
         if text in self._splitterCache:
             return self._splitterCache[text]
-        
+        print(str(time.clock()), "splitSentence(self, text) - INIZIO")
         output = self.splitSentencePrioritizeFirst(text)
         self._splitterCache[text] = output
+        print(str(time.clock()), "splitSentence(self, text) - FINE")
         return output
 
 if __name__ == '__main__':
