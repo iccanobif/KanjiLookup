@@ -40,7 +40,23 @@ class EdictDictionary:
     def __init__(self):
         self._splitterCache = dict()
         # self._translationsCache = dict()
-        self.connection = sqlite3.connect("db.db")
+        self.connection = sqlite3.connect(":memory:")
+        self.connection.execute("ATTACH DATABASE 'db.db' AS src")
+        
+        for table in self.connection.execute("""select name 
+                                        from src.sqlite_master
+                                        where type = 'table'""").fetchall():
+            table = table[0]
+            query = "CREATE TABLE {0} AS SELECT * FROM SRC.{0}".format(table)
+            print(str(time.clock()), query)
+            self.connection.execute(query)
+            
+        for table in self.connection.execute("""select sql 
+                                        from src.sqlite_master
+                                        where type = 'index'""").fetchall():
+            query = table[0]
+            print(str(time.clock()), query)
+            self.connection.execute(query)
     
     class DictionaryEntry:
         def __init__(self):
@@ -54,7 +70,7 @@ class EdictDictionary:
         return text
 
     def getTranslation(self, text):
-        print(str(time.clock()), "getTranslation(self, text) - INIZIO")
+        # print(str(time.clock()), "getTranslation(self, text) - INIZIO")
         # if text in self._translationsCache:
             # return self._translationsCache[text]
 
@@ -70,38 +86,41 @@ class EdictDictionary:
         katakanaText = romkan.hiragana_to_katakana(text)
 
         query = """
-                select ifnull(acc.base_form, '') || ' ' || a.content,
+                select ifnull((select group_concat(acc.base_form, '/')
+                                 from pitch_accents acc
+                                 where acc.kanji = l.uninflectedLemma), '') || ' ' || a.content,
                        1 as o
                   from edict_lemmas l
                   join edict_articles a on a.id = l.articleId
-             left join pitch_accents acc on acc.kanji = l.uninflectedLemma
+             --left join pitch_accents acc on acc.kanji = l.uninflectedLemma
                  where l.lemma = '{text}' 
-                 union
+                union
                 select replace(
-                        '<b>' || kl.lemmatitle || ' - ' || kl.lemmasubtitle || ' (' || ifnull(acc.base_form, '') || ')</b><br/>' || ka.content,
+                        '<b>' || kl.lemmatitle || ' - ' || kl.lemmasubtitle 
+                              || ' (' || ifnull((select group_concat(acc.base_form, '/')
+                                                        from pitch_accents acc
+                                                        where acc.kanji = kl.lemmatitle), '') 
+                              || ')</b><br/>' || ka.content,
                         '()',
                         ''),
                        2 as o
                   from kotobank_lemmas kl
                   join kotobank_rel_lemma_article rel on kl.id = rel.lemmaid
                   join kotobank_articles ka on ka.id = rel.articleId
-             left join pitch_accents acc on acc.kanji = kl.lemmatitle
                  where (kl.lemmatitle = '{text}' 
-                        or kl.lemmasubtitle = '{katakanaText}'
-                        or kl.lemmatitle in (select el.uninflectedlemma from edict_lemmas el where el.lemma = '{text}')
-                        or kl.lemmasubtitle in (select el.uninflectedlemma from edict_lemmas el where el.lemma = '{katakanaText}')
-                 ) and ka.dictionary = 'デジタル大辞泉の解説'
+                            or kl.lemmasubtitle = '{katakanaText}'
+                            or kl.lemmatitle in (select el.uninflectedlemma from edict_lemmas el where el.lemma = '{text}')
+                            or kl.lemmasubtitle in (select el.uninflectedlemma from edict_lemmas el where el.lemma = '{katakanaText}')
+                        ) and ka.dictionary = 'デジタル大辞泉の解説'
                  order by o
                 """.format(text = text.replace("'", "\'"), katakanaText = katakanaText.replace("'", "\'"))
 
-        print(str(time.clock()), "puppamelo")
         for entry in self.connection.execute(query).fetchall():
-            print(str(time.clock()), "oh yeah")
             output.append(entry[0])
 
         # self._translationsCache[text] = output
         
-        print(str(time.clock()), "getTranslation(self, text) - FINE")
+        # print(str(time.clock()), "getTranslation(self, text) - FINE")
         
         if output == []:
             return None
@@ -174,10 +193,10 @@ class EdictDictionary:
     def splitSentence(self, text):
         if text in self._splitterCache:
             return self._splitterCache[text]
-        print(str(time.clock()), "splitSentence(self, text) - INIZIO")
+        # print(str(time.clock()), "splitSentence(self, text) - INIZIO")
         output = self.splitSentencePrioritizeFirst(text)
         self._splitterCache[text] = output
-        print(str(time.clock()), "splitSentence(self, text) - FINE")
+        # print(str(time.clock()), "splitSentence(self, text) - FINE")
         return output
 
 if __name__ == '__main__':

@@ -190,8 +190,8 @@ class MainWindow(QWidget):
             self.txtTranslations.setPlainText("-- not found --")
         else:
             print(str(time.clock()), "self.txtTranslations.setHtml()")
-            if len(translations) > 10:
-                translations = translations[0:10] + ["..."]
+            # if len(translations) > 10:
+                # translations = translations[0:10] + ["..."]
             self.txtTranslations.setHtml("<br/>--------<br/>".join(translations).replace("\n", "<br/>"))
             print(str(time.clock()), "self.txtTranslations.setHtml() - fine")
 
