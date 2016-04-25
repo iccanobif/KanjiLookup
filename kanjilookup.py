@@ -189,11 +189,11 @@ class MainWindow(QWidget):
         if translations is None:
             self.txtTranslations.setPlainText("-- not found --")
         else:
-            print(str(time.clock()), "self.txtTranslations.setHtml()")
-            # if len(translations) > 10:
-                # translations = translations[0:10] + ["..."]
+            # print(str(time.clock()), "self.txtTranslations.setHtml()")
+            if len(translations) > 50:
+                translations = translations[0:50] + ["..."]
             self.txtTranslations.setHtml("<br/>--------<br/>".join(translations).replace("\n", "<br/>"))
-            print(str(time.clock()), "self.txtTranslations.setHtml() - fine")
+            # print(str(time.clock()), "self.txtTranslations.setHtml() - fine")
 
     def onbtnShowHistoryClicked(self):
         self.historyWindow.show()
@@ -221,7 +221,7 @@ class MainWindow(QWidget):
         self.unsetCursor()
         
     def ontxtOutputAggregationTextChanged(self):
-        print(self.txtOutputAggregation.text())
+        # print(self.txtOutputAggregation.text())
         self.historyWindow.addEntry(self.txtOutputAggregation.text())
         
         input = self.txtOutputAggregation.text()
@@ -304,7 +304,6 @@ class ListPopup(QDialog):
         #va in errore tra qui...
         print("QDialog.__init__(self, parent)")
         QDialog.__init__(self, parent)
-        
         
         print("self.entries = set()")
         self.entries = set()

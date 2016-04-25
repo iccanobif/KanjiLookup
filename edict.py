@@ -33,6 +33,16 @@ class PerformanceStatistics:
             print("    max: " + str(max(self.stats[d])*1000) + " ms")
             print("    min: " + str(min(self.stats[d])*1000) + " ms")
 
+def re_fn(expr, item):
+    return re.search("^" + expr + "$", item) is not None
+    #{tree}造
+    #容{mouth}
+    try:
+        reg = re.compile(expr, re.I)
+        return reg.fullmatch(item) is not None
+    except:
+        print("re_fn(" + expr + ", " + item + ")")
+            
 class EdictDictionary:
 
     connection = None
@@ -49,6 +59,7 @@ class EdictDictionary:
         # self._translationsCache = dict()
         if True:
             self.connection = sqlite3.connect(":memory:")
+            self.connection.create_function("REGEXP", 2, re_fn)
             self.connection.execute("ATTACH DATABASE 'db.db' AS src")
             
             for table in self.connection.execute("""select name 
@@ -186,7 +197,21 @@ class EdictDictionary:
         for radicalList in re.findall("{.*?}", text):
             splitted = radicalList[1:-1].lower().replace("、", ",").split(",")
             text = text.replace(radicalList, "[" + "|".join(lookup.getKanjiFromRadicals(splitted)) + "]")
-        return list(sorted(filter(lambda x: re.search("^" + text + "$", x) is not None, self.dictionaryJ2E.keys())))
+            
+        # return list(sorted(filter(lambda x: re.search("^" + text + "$", x) is not None, self.dictionaryJ2E.keys())))
+        
+        query = """
+            select lemma
+              from edict_lemmas l
+             where lemma REGEXP '{0}' 
+             union all
+            select lemmatitle
+              from kotobank_lemmas kl
+             where lemmatitle REGEXP '{0}'
+            """.format(text.replace("'", "\'"))
+            
+        return [x[0] for x in self.connection.execute(query).fetchall()]
+
         
     # The following sentence still trips the splitter up: it does がそ/れ instead of が/それ (れ is the stem of ichidan verb れる)...
     # print(splitSentence("あなたがそれを気に入るのはわかっていました。"))
