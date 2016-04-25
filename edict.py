@@ -36,27 +36,51 @@ class PerformanceStatistics:
 class EdictDictionary:
 
     connection = None
+    enamdict = dict()
+    
+    def __addWordToEnamdict(self, word, entry):
+        if word not in self.enamdict:
+            self.enamdict[word] = [entry]
+        else:
+            self.enamdict[word].append(entry)
     
     def __init__(self):
         self._splitterCache = dict()
         # self._translationsCache = dict()
-        self.connection = sqlite3.connect(":memory:")
-        self.connection.execute("ATTACH DATABASE 'db.db' AS src")
-        
-        for table in self.connection.execute("""select name 
-                                        from src.sqlite_master
-                                        where type = 'table'""").fetchall():
-            table = table[0]
-            query = "CREATE TABLE {0} AS SELECT * FROM SRC.{0}".format(table)
-            print(str(time.clock()), query)
-            self.connection.execute(query)
+        if True:
+            self.connection = sqlite3.connect(":memory:")
+            self.connection.execute("ATTACH DATABASE 'db.db' AS src")
             
-        for table in self.connection.execute("""select sql 
-                                        from src.sqlite_master
-                                        where type = 'index'""").fetchall():
-            query = table[0]
-            print(str(time.clock()), query)
-            self.connection.execute(query)
+            for table in self.connection.execute("""select name 
+                                            from src.sqlite_master
+                                            where type = 'table'""").fetchall():
+                table = table[0]
+                query = "CREATE TABLE {0} AS SELECT * FROM SRC.{0}".format(table)
+                print(str(time.clock()), query)
+                self.connection.execute(query)
+                
+            for table in self.connection.execute("""select sql 
+                                            from src.sqlite_master
+                                            where type = 'index'""").fetchall():
+                query = table[0]
+                print(str(time.clock()), query)
+                self.connection.execute(query)
+        else:
+            self.connection = sqlite3.connect("db.db")
+            
+        print("Loading ENAMDICT..")
+        with open("datasets/enamdict.utf", "r", encoding="utf8") as f:
+            for line in f.readlines():
+                line = line.strip()
+                name = line[0:line.find("/")]
+                secondaryReadingStart = name.find("[")
+                secondaryReadingEnd = name.find("]")
+                if secondaryReadingStart == -1: # there's only one reading
+                    self.__addWordToEnamdict(name.strip(), line)
+                else:
+                    self.__addWordToEnamdict(name[0:secondaryReadingStart].strip(), line)
+                    self.__addWordToEnamdict(name[secondaryReadingStart+1:secondaryReadingEnd].strip(), line)
+
     
     class DictionaryEntry:
         def __init__(self):
@@ -92,7 +116,6 @@ class EdictDictionary:
                        1 as o
                   from edict_lemmas l
                   join edict_articles a on a.id = l.articleId
-             --left join pitch_accents acc on acc.kanji = l.uninflectedLemma
                  where l.lemma = '{text}' 
                 union
                 select replace(
@@ -122,6 +145,9 @@ class EdictDictionary:
         
         # print(str(time.clock()), "getTranslation(self, text) - FINE")
         
+        if text in self.enamdict:
+            output += self.enamdict[text]
+        
         if output == []:
             return None
         else:
@@ -131,6 +157,10 @@ class EdictDictionary:
         # print(str(time.clock()), "existsItem(self, text) - INIZIO")
         text = text.lower()
         text = self.normalizeInput(text)
+        
+        if text in self.enamdict:
+            return True
+        
         katakanaText = romkan.hiragana_to_katakana(text)
 
         query = """
