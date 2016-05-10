@@ -33,7 +33,9 @@ class MainWindow(QWidget):
 
     def __init__(self):
     
-        self.dict = edict.EdictDictionary()
+        self.edictDictionary = edict.EdictDictionary()
+        self.cedictDictionary = cedict.CedictDictionary()
+        self.dict = self.edictDictionary
     
         QWidget.__init__(self)
         self.setWindowTitle("Kanji lookup")
@@ -264,9 +266,9 @@ class MainWindow(QWidget):
     def onLanguageChanged(self, checked):
         self.setCursor(Qt.WaitCursor)
         if self.rbtChinese.isChecked():
-            self.dict = cedict.CedictDictionary()
+            self.dict = self.cedictDictionary
         else:
-            self.dict = edict.EdictDictionary()
+            self.dict = self.edictDictionary
         self.ontxtOutputAggregationTextChanged()
         self.unsetCursor()
         
