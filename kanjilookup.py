@@ -68,6 +68,9 @@ class MainWindow(QWidget):
 
         self.btnSearchWord = QPushButton("Search...", self)
         self.btnSearchWord.clicked.connect(self.onbtnSearchWordClicked)
+        
+        self.btnSaveWord = QPushButton("Save word", self)
+        self.btnSaveWord.clicked.connect(self.onbtnSaveWordClicked)
 
         self.lblSplittedWordsList = QLabel(self)
         self.lblSplittedWordsList.setStyleSheet("font-size: 20px")
@@ -102,6 +105,7 @@ class MainWindow(QWidget):
         self.buttonsLayout.addWidget(self.btnShowRadicals)
         self.buttonsLayout.addWidget(self.btnShowHistory)
         self.buttonsLayout.addWidget(self.btnSearchWord)
+        self.buttonsLayout.addWidget(self.btnSaveWord)
         self.bottomLayout.addLayout(self.buttonsLayout)
 
         self.mainLayout.addLayout(self.bottomLayout)
@@ -221,6 +225,17 @@ class MainWindow(QWidget):
         popup.show(self.dict.findWordsFromFragment(text))
         
         self.unsetCursor()
+        
+    def onbtnSaveWordClicked(self):
+        if self.txtOutputAggregation.hasSelectedText():
+            text = self.txtOutputAggregation.selectedText()
+        else:
+            text = self.txtOutputAggregation.text()
+            
+        f = open("savedwords.txt", "a", encoding="utf8")
+        f.write(text + "\n")
+        f.close()
+        QMessageBox.information(self, "saved", "saved")
         
     def ontxtOutputAggregationTextChanged(self):
         # print(self.txtOutputAggregation.text())
