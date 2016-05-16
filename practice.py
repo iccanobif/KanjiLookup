@@ -1,6 +1,7 @@
 import utf8console
 import random
 import sys
+import edict
 from PySide.QtCore import *
 from PySide.QtGui import *
 
@@ -10,6 +11,8 @@ random.seed()
 correctWords = 0
 wrongWords = 0
 
+edictDictionary = edict.EdictDictionary(loadToMemory = False, loadEnamdict = False)
+
 f = open("savedwords.txt", "r", encoding="utf8")
 words = [x.strip() for x in f.readlines()]
 f.close()
@@ -17,8 +20,8 @@ f.close()
 
 def loadNewWord():
     global currentWord
-    i = random.randrange(0, 20 if len(words) >= 20 else len(words)) # pesco solo tra le prime N righe
-    #i = random.randrange(0, len(words))
+    #i = random.randrange(0, 20 if len(words) >= 20 else len(words)) # pesco solo tra le prime N righe
+    i = random.randrange(0, len(words))
 
     if currentWord is words[i]:
         currentWord = words[(i+1) % len(words)]
@@ -47,6 +50,10 @@ def onReturnPressed():
         wrongWords += 1
     s += "<br/><br/>"
     s += "Correct: " + str(correctWords) + " Wrong: " + str(wrongWords)
+    s += "<br/><br/>"
+    translations = edictDictionary.getTranslation(currentWord)
+    if translations is not None:
+        s += "<br/>---<br/>".join(translations)
     lblOutput.setText(s)
 
     if len(words) == 0:
@@ -74,7 +81,7 @@ txtInput.setStyleSheet("QLineEdit{ font-size: 70px }")
 
 lblOutput = QLabel(window)
 f = lblOutput.font()
-f.setPointSize(50)
+f.setPointSize(20)
 lblOutput.setFont(f)
 lblOutput.setWordWrap(True)
 
