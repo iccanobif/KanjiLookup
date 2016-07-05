@@ -3,3 +3,5 @@ errorlog.txt
 dist
 build
 gui.spec
+/savedwords.txt
+db.db

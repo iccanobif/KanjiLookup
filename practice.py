@@ -15,13 +15,15 @@ edictDictionary = edict.EdictDictionary(loadToMemory = False, loadEnamdict = Fal
 
 f = open("savedwords.txt", "r", encoding="utf8")
 words = [x.strip() for x in f.readlines()]
+words = list(filter(lambda x: not x.startswith("#"), words))
 f.close()
+random.shuffle(words)
 
 
 def loadNewWord():
     global currentWord
-    #i = random.randrange(0, 20 if len(words) >= 20 else len(words)) # pesco solo tra le prime N righe
-    i = random.randrange(0, len(words))
+    i = random.randrange(0, 5 if len(words) >= 5 else len(words)) # pesco solo tra le prime N righe
+    #i = random.randrange(0, len(words))
 
     if currentWord is words[i]:
         currentWord = words[(i+1) % len(words)]

@@ -33,7 +33,7 @@ class MainWindow(QWidget):
 
     def __init__(self):
     
-        self.edictDictionary = edict.EdictDictionary()
+        self.edictDictionary = edict.EdictDictionary(loadToMemory = True)
         self.cedictDictionary = cedict.CedictDictionary()
         self.dict = self.edictDictionary
     
@@ -60,6 +60,9 @@ class MainWindow(QWidget):
         self.txtOutputAggregation.selectionChanged.connect(self.handleSelectionChangesOrCursorMovements)
         self.txtOutputAggregation.cursorPositionChanged.connect(self.handleSelectionChangesOrCursorMovements)
 
+        self.btnSaveWord = QPushButton("Save word", self)
+        self.btnSaveWord.clicked.connect(self.onbtnSaveWordClicked)
+
         self.btnShowRadicals = QPushButton("Show radicals...", self)
         self.btnShowRadicals.clicked.connect(self.onbtnShowRadicalsClicked)
 
@@ -69,9 +72,6 @@ class MainWindow(QWidget):
         self.btnSearchWord = QPushButton("Search...", self)
         self.btnSearchWord.clicked.connect(self.onbtnSearchWordClicked)
         
-        self.btnSaveWord = QPushButton("Save word", self)
-        self.btnSaveWord.clicked.connect(self.onbtnSaveWordClicked)
-
         self.lblSplittedWordsList = QLabel(self)
         self.lblSplittedWordsList.setStyleSheet("font-size: 20px")
         self.lblSplittedWordsList.linkActivated.connect(self.onlblSplittedWordsListlinkActivated)
@@ -102,10 +102,10 @@ class MainWindow(QWidget):
         self.bottomLayout = QHBoxLayout()
         self.bottomLayout.addWidget(self.txtOutputAggregation)
         self.buttonsLayout = QVBoxLayout()
+        self.buttonsLayout.addWidget(self.btnSaveWord)
         self.buttonsLayout.addWidget(self.btnShowRadicals)
         self.buttonsLayout.addWidget(self.btnShowHistory)
         self.buttonsLayout.addWidget(self.btnSearchWord)
-        self.buttonsLayout.addWidget(self.btnSaveWord)
         self.bottomLayout.addLayout(self.buttonsLayout)
 
         self.mainLayout.addLayout(self.bottomLayout)

@@ -41,6 +41,7 @@ def re_fn(expr, item):
         reg = re.compile(expr, re.I)
         return reg.fullmatch(item) is not None
     except:
+
         print("re_fn(" + expr + ", " + item + ")")
             
 class EdictDictionary:
@@ -54,10 +55,10 @@ class EdictDictionary:
         else:
             self.enamdict[word].append(entry)
     
-    def __init__(self):
+    def __init__(self, loadToMemory = True, loadEnamdict = True):
         self._splitterCache = dict()
         # self._translationsCache = dict()
-        if True:
+        if loadToMemory:
             self.connection = sqlite3.connect(":memory:")
             self.connection.create_function("REGEXP", 2, re_fn)
             self.connection.execute("ATTACH DATABASE 'db.db' AS src")
@@ -79,18 +80,19 @@ class EdictDictionary:
         else:
             self.connection = sqlite3.connect("db.db")
             
-        print("Loading ENAMDICT..")
-        with open("datasets/enamdict.utf", "r", encoding="utf8") as f:
-            for line in f.readlines():
-                line = line.strip()
-                name = line[0:line.find("/")]
-                secondaryReadingStart = name.find("[")
-                secondaryReadingEnd = name.find("]")
-                if secondaryReadingStart == -1: # there's only one reading
-                    self.__addWordToEnamdict(name.strip(), line)
-                else:
-                    self.__addWordToEnamdict(name[0:secondaryReadingStart].strip(), line)
-                    self.__addWordToEnamdict(name[secondaryReadingStart+1:secondaryReadingEnd].strip(), line)
+        if loadEnamdict == True:
+            print("Loading ENAMDICT..")
+            with open("datasets/enamdict.utf", "r", encoding="utf8") as f:
+                for line in f.readlines():
+                    line = line.strip()
+                    name = line[0:line.find("/")]
+                    secondaryReadingStart = name.find("[")
+                    secondaryReadingEnd = name.find("]")
+                    if secondaryReadingStart == -1: # there's only one reading
+                        self.__addWordToEnamdict(name.strip(), line)
+                    else:
+                        self.__addWordToEnamdict(name[0:secondaryReadingStart].strip(), line)
+                        self.__addWordToEnamdict(name[secondaryReadingStart+1:secondaryReadingEnd].strip(), line)
 
     
     class DictionaryEntry:
