@@ -285,6 +285,7 @@ class MainWindow(QWidget):
         else:
             self.dict = self.edictDictionary
         self.ontxtOutputAggregationTextChanged()
+        self.handleSelectionChangesOrCursorMovements()
         self.unsetCursor()
         
 class Popup(QDialog):
