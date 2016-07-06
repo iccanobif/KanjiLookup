@@ -7,6 +7,7 @@ if sys.executable.endswith("pythonw.exe"):
 
 from PySide.QtCore import *
 from PySide.QtGui import *
+import simpleaudio as sa
 
 import win32con
 # import hotkeythread
@@ -33,7 +34,7 @@ class MainWindow(QWidget):
 
     def __init__(self):
     
-        self.edictDictionary = edict.EdictDictionary(loadToMemory = True)
+        self.edictDictionary = edict.EdictDictionary(loadToMemory = False, loadEnamdict = False)
         self.cedictDictionary = cedict.CedictDictionary()
         self.dict = self.edictDictionary
     
@@ -76,13 +77,15 @@ class MainWindow(QWidget):
         self.lblSplittedWordsList.setStyleSheet("font-size: 20px")
         self.lblSplittedWordsList.linkActivated.connect(self.onlblSplittedWordsListlinkActivated)
 
-        self.txtTranslations = QTextEdit(self)
+        self.txtTranslations = QTextBrowser(self)
         self.txtTranslations.setReadOnly(True)
+        self.txtTranslations.setOpenLinks(False)
         self.txtTranslations.setStyleSheet("font-size: 25px")
         #stuff for making HTML a bit faster (http://stackoverflow.com/questions/3120258/qtextedit-inserthtml-is-very-slow)
         self.txtTranslations.setAcceptRichText(False)
         self.txtTranslations.setContextMenuPolicy(Qt.NoContextMenu)
         self.txtTranslations.setUndoRedoEnabled(False)
+        self.txtTranslations.anchorClicked.connect(self.onTxtTranslationsAnchorClicked)
 
         self.lblStrokeCount = QLabel("Stroke count:")
         self.spnStrokeCount = QSpinBox(self)
@@ -91,7 +94,7 @@ class MainWindow(QWidget):
         self.rbtChinese = QRadioButton("Chinese", self)
         self.rbtChinese.toggled.connect(self.onLanguageChanged)
         self.rbtJapanese = QRadioButton("Japanese", self)
-        self.rbtJapanese.setChecked(True)
+        self.rbtChinese.setChecked(True)
         
         #Layout
 
@@ -287,6 +290,14 @@ class MainWindow(QWidget):
         self.ontxtOutputAggregationTextChanged()
         self.handleSelectionChangesOrCursorMovements()
         self.unsetCursor()
+        
+    def onTxtTranslationsAnchorClicked(self, url):
+        self.playMp3("datasets/chineseSounds/" + url.path() + ".mp3.wav")
+        
+    def playMp3(self, path):
+        wave_obj = sa.WaveObject.from_wave_file(path)
+        play_obj = wave_obj.play()
+        # play_obj.wait_done()
         
 class Popup(QDialog):
     def __init__(self, parent, text):
