@@ -15,6 +15,12 @@ class CedictDictionary:
         else:
             self.__loadDictionary() #comment here to do lazy loading of dictionary
 
+            
+    def __addToDictionary(self, key, content):
+        if key not in self.dictionary:
+            self.dictionary[key] = []
+        self.dictionary[key].append(content)
+
     def __loadDictionary(self):
         print("Loading cc-cedict... ", end="", flush=True)
         starttime = time.clock()
@@ -22,21 +28,25 @@ class CedictDictionary:
         CedictDictionary.dictionary = self.dictionary #make a static copy 
         with open("datasets/cedict_ts.u8", "r", encoding="utf8") as f:
             for line in f.readlines():
+                if line[0] == "#":
+                    continue
                 i = line.find(" ")
                 traditional = line[0:i]
                 simplified = line[i+1:line.find(" ", i+1)]
-                #reading = line[line.find["["] + 1:line.find["]"]]
-                
-                
-                if traditional not in self.dictionary:
-                    self.dictionary[traditional] = []
-                self.dictionary[traditional].append(line)
+                reading = line[line.find("[") + 1:line.find("]")].lower()
+                readingWithLinks = "".join(["<a href='{0}'>{0}</a> ".format(x) for x in reading.split(" ")]).strip()
+                line = line[0:line.find("[")+1] + readingWithLinks + line[line.find("]"):]
+
+                self.__addToDictionary(traditional, line)
                 
                 if traditional != simplified:
-                    if simplified not in self.dictionary:
-                        self.dictionary[simplified] = []
-                    self.dictionary[simplified].append(line)
+                    self.__addToDictionary(simplified, line)
 
+                readingWithTones = reading.replace(" ", "")
+                self.__addToDictionary(readingWithTones, line)
+                
+                readingWithoutTones = re.sub("\d", "", readingWithTones)
+                self.__addToDictionary(readingWithoutTones, line)
         print("OK (" + str(time.clock() - starttime) + " seconds)")
 
     def getTranslation(self, text):
