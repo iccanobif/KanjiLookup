@@ -1,5 +1,5 @@
 import re
-#import utf8console
+import utf8console
 import time
 
 # CC-CEDICT entry samples:
@@ -33,8 +33,8 @@ class CedictDictionary:
                 i = line.find(" ")
                 traditional = line[0:i]
                 simplified = line[i+1:line.find(" ", i+1)]
-                reading = line[line.find("[") + 1:line.find("]")].lower()
-                readingWithLinks = "".join(["<a href='{0}'>{0}</a> ".format(x) for x in reading.split(" ")]).strip()
+                reading = line[line.find("[") + 1:line.find("]")].lower().replace("u:", "v")
+                readingWithLinks = " ".join(["<a href='{0}'>{0}</a>".format(x) for x in reading.split(" ")])
                 line = line[0:line.find("[")+1] + readingWithLinks + line[line.find("]"):]
 
                 self.__addToDictionary(traditional, line)
@@ -52,6 +52,8 @@ class CedictDictionary:
     def getTranslation(self, text):
         if self.dictionary is None:
             self.__loadDictionary()
+        
+        text = text.lower()
         
         if text not in self.dictionary:
             return None
@@ -103,5 +105,6 @@ class CedictDictionary:
         
 if __name__ == '__main__':
     d = CedictDictionary()
-    print(d.getTranslation("安"))
-    print(d.getTranslation("你"))
+    print("\n\t".join(d.getTranslation("安")))
+    print("\n\t".join(d.getTranslation("qing")))
+    print("\n\t".join(d.getTranslation("tian1")))
