@@ -34,7 +34,7 @@ class MainWindow(QWidget):
 
     def __init__(self):
     
-        self.edictDictionary = edict.EdictDictionary(loadToMemory = False, loadEnamdict = False)
+        self.edictDictionary = edict.EdictDictionary(loadToMemory = True, loadEnamdict = True)
         self.cedictDictionary = cedict.CedictDictionary()
         self.dict = self.edictDictionary
     

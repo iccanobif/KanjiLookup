@@ -18,8 +18,8 @@ class CedictDictionary:
             
     def __addToDictionary(self, key, content):
         if key not in self.dictionary:
-            self.dictionary[key] = []
-        self.dictionary[key].append(content)
+            self.dictionary[key] = set()
+        self.dictionary[key].add(content)
 
     def __loadDictionary(self):
         print("Loading cc-cedict... ", end="", flush=True)
@@ -47,6 +47,11 @@ class CedictDictionary:
                 
                 readingWithoutTones = re.sub("\d", "", readingWithTones)
                 self.__addToDictionary(readingWithoutTones, line)
+                
+                translations = line[line.find("/"):].lower().replace("/", " ")
+                for w in translations.split(" "):
+                    self.__addToDictionary(w, line)
+
         print("OK (" + str(time.clock() - starttime) + " seconds)")
 
     def getTranslation(self, text):
@@ -98,6 +103,8 @@ class CedictDictionary:
     def splitSentence(self, text):
         if text in self._splitterCache:
             return self._splitterCache[text]
+            
+        text = text.lower()
         
         output = self.splitSentencePrioritizeFirst(text)
         self._splitterCache[text] = output
@@ -105,6 +112,9 @@ class CedictDictionary:
         
 if __name__ == '__main__':
     d = CedictDictionary()
-    print("\n\t".join(d.getTranslation("安")))
-    print("\n\t".join(d.getTranslation("qing")))
-    print("\n\t".join(d.getTranslation("tian1")))
+    # print("\n\t".join(d.getTranslation("安")))
+    # print("\n\t".join(d.getTranslation("qing")))
+    # print("\n\t".join(d.getTranslation("tian1")))
+    # print("\n\t".join(d.getTranslation("pig")))
+    print("\n\t".join(d.getTranslation("DOG")))
+    
