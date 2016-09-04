@@ -16,7 +16,20 @@ class HistoryWindow(QDialog):
     def addEntry(self, entry):
         entry = re.sub("[0-9a-zA-Z]", "", entry).strip()
     
-        if entry == "" or entry in self.entries: 
+        if entry == "": # or entry in self.entries: 
             return
         self.entries.add(entry)
-        self.lstHistory.addItem(entry)
+        
+    def show(self):
+        # newEntriesList = list(sorted(self.entries))
+        # for i in range(0, len(newEntriesList)-1):
+            # if len(list(filter(lambda x: x in i, newEntriesList[i:]))) == 0:
+                # self.lstHistory.addItem(i)
+        alreadyAdded = set()
+        for i in self.entries:  
+            if i in alreadyAdded:
+                continue
+            alreadyAdded.add(i)
+            self.lstHistory.addItem(i)
+        QDialog.show(self)
+        
