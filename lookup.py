@@ -33,7 +33,7 @@ while True:
 
     for r in radicalsDb.keys():
         for k in list(radicalsDb[r]):
-            if k in radicalsDb.keys():
+            if k in radicalsDb.keys(): # k is a kanji under r but is also a radical itself
                 for new in radicalsDb[k]:
                     if new not in radicalsDb[r]:
                         keepLooping = True

@@ -41,7 +41,6 @@ class MainWindow(QWidget):
         QWidget.__init__(self)
         self.setWindowTitle("Kanji lookup")
         self.resize(500, 600)
-        # self.setWindowFlags(Qt.WindowStaysOnTopHint)
         self.setWindowIcon(QIcon("icon.png"))
 
         self.historyWindow = HistoryWindow(self)
@@ -96,6 +95,11 @@ class MainWindow(QWidget):
         self.rbtJapanese = QRadioButton("Japanese", self)
         self.rbtChinese.setChecked(True)
         
+        self.chkAlwaysOnTop = QCheckBox("AOT", self)
+        self.chkAlwaysOnTop.stateChanged.connect(self.onchkAlwaysOnTopStateChanged)
+        self.chkAlwaysOnTop.setCheckState(Qt.Unchecked)
+        
+        
         #Layout
 
         self.mainLayout = QVBoxLayout(self)
@@ -121,6 +125,7 @@ class MainWindow(QWidget):
         self.strokeCountLayout.addWidget(self.spnStrokeCount)
         self.strokeCountLayout.addWidget(self.rbtChinese)
         self.strokeCountLayout.addWidget(self.rbtJapanese)
+        self.strokeCountLayout.addWidget(self.chkAlwaysOnTop)
         self.mainLayout.addLayout(self.strokeCountLayout)
         self.lblStrokeCount.adjustSize()
 
@@ -298,6 +303,19 @@ class MainWindow(QWidget):
         wave_obj = sa.WaveObject.from_wave_file(path)
         play_obj = wave_obj.play()
         # play_obj.wait_done()
+    
+    def onchkAlwaysOnTopStateChanged(self, state):
+        show = self.isVisible()
+        #originalPosition = self.mapToGlobal(self.pos())
+        if state == Qt.Checked:
+            self.setWindowFlags(Qt.WindowStaysOnTopHint)
+        else:
+            flags = self.windowFlags()
+            flags = flags & ~Qt.WindowStaysOnTopHint
+            self.setWindowFlags(flags)
+        if show:
+            self.show()
+            #self.move(originalPosition)
         
 class Popup(QDialog):
     def __init__(self, parent, text):
