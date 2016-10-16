@@ -301,10 +301,8 @@ class MainWindow(QWidget):
         self.setCursor(Qt.WaitCursor)
         currLanguage = self.cmbLanguage.itemData(self.cmbLanguage.currentIndex())
         if currLanguage == "CHINESE":
-            print("chinese")
             self.dict = self.cedictDictionary
         else:
-            print("japanese")
             self.dict = self.edictDictionary
         self.ontxtOutputAggregationTextChanged()
         self.handleSelectionChangesOrCursorMovements()
