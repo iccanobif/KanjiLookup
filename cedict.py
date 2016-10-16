@@ -22,7 +22,7 @@ class CedictDictionary:
         self.dictionary[key].add(content)
 
     def __loadDictionary(self):
-        print("Loading cc-cedict... ", end="", flush=True)
+        print("Loading CC-CEDICT... ", end="", flush=True)
         starttime = time.clock()
         self.dictionary = dict()
         CedictDictionary.dictionary = self.dictionary #make a static copy 

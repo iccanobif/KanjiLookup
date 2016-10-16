@@ -28,6 +28,8 @@ splashScreen.showMessage("Loading cedict...")
 import cedict
 splashScreen.showMessage("Loading edict...")
 import edict
+splashScreen.showMessage("Loading kengdic...")
+import kengdic
 from historyWindow import HistoryWindow
 
 class MainWindow(QWidget):
@@ -47,6 +49,7 @@ class MainWindow(QWidget):
     
         self.edictDictionary = edict.EdictDictionary(loadToMemory = True, loadEnamdict = True)
         self.cedictDictionary = cedict.CedictDictionary()
+        self.kengdicDictionary = kengdic.KengdicDictionary()
         self.dict = self.edictDictionary
     
         QWidget.__init__(self)
@@ -105,6 +108,7 @@ class MainWindow(QWidget):
         self.cmbLanguage = QComboBox(self)
         self.cmbLanguage.addItem("Japanese", "JAPANESE")
         self.cmbLanguage.addItem("Chinese", "CHINESE")
+        self.cmbLanguage.addItem("Korean", "KOREAN")
         self.cmbLanguage.currentIndexChanged.connect(self.onLanguageChanged)
                 
         self.chkAlwaysOnTop = QCheckBox("AOT", self)
@@ -302,8 +306,10 @@ class MainWindow(QWidget):
         currLanguage = self.cmbLanguage.itemData(self.cmbLanguage.currentIndex())
         if currLanguage == "CHINESE":
             self.dict = self.cedictDictionary
-        else:
+        elif currLanguage == "JAPANESE":
             self.dict = self.edictDictionary
+        elif currLanguage == "KOREAN":
+            self.dict = self.kengdicDictionary
         self.ontxtOutputAggregationTextChanged()
         self.handleSelectionChangesOrCursorMovements()
         self.unsetCursor()
