@@ -32,6 +32,17 @@ from historyWindow import HistoryWindow
 
 class MainWindow(QWidget):
 
+    def eventFilter(self, object, event):
+        if object == self.txtOutputAggregation:
+            if (event.type() == QEvent.KeyPress):
+                if event.key() == Qt.Key_Up:
+                    self.cmbLanguage.setCurrentIndex((self.cmbLanguage.currentIndex() + 1) % self.cmbLanguage.count() )
+                if event.key() == Qt.Key_Down:
+                    self.cmbLanguage.setCurrentIndex((self.cmbLanguage.currentIndex() - 1) % self.cmbLanguage.count() )
+                return False
+        # if I got here, it means it's an event I'll just let Qt handle in its default way
+        return QObject.eventFilter(self, object, event)
+
     def __init__(self):
     
         self.edictDictionary = edict.EdictDictionary(loadToMemory = True, loadEnamdict = True)
@@ -59,6 +70,7 @@ class MainWindow(QWidget):
         self.txtOutputAggregation.textChanged.connect(self.ontxtOutputAggregationTextChanged)
         self.txtOutputAggregation.selectionChanged.connect(self.handleSelectionChangesOrCursorMovements)
         self.txtOutputAggregation.cursorPositionChanged.connect(self.handleSelectionChangesOrCursorMovements)
+        self.txtOutputAggregation.installEventFilter(self)
 
         self.btnSaveWord = QPushButton("Save word", self)
         self.btnSaveWord.clicked.connect(self.onbtnSaveWordClicked)
@@ -90,11 +102,11 @@ class MainWindow(QWidget):
         self.spnStrokeCount = QSpinBox(self)
         self.spnStrokeCount.valueChanged.connect(self.onspnStrokeCountValueChanged)
         
-        self.rbtChinese = QRadioButton("Chinese", self)
-        self.rbtChinese.toggled.connect(self.onLanguageChanged)
-        self.rbtJapanese = QRadioButton("Japanese", self)
-        self.rbtChinese.setChecked(True)
-        
+        self.cmbLanguage = QComboBox(self)
+        self.cmbLanguage.addItem("Japanese", "JAPANESE")
+        self.cmbLanguage.addItem("Chinese", "CHINESE")
+        self.cmbLanguage.currentIndexChanged.connect(self.onLanguageChanged)
+                
         self.chkAlwaysOnTop = QCheckBox("AOT", self)
         self.chkAlwaysOnTop.stateChanged.connect(self.onchkAlwaysOnTopStateChanged)
         self.chkAlwaysOnTop.setCheckState(Qt.Unchecked)
@@ -123,8 +135,7 @@ class MainWindow(QWidget):
         self.strokeCountLayout = QHBoxLayout()
         self.strokeCountLayout.addWidget(self.lblStrokeCount)
         self.strokeCountLayout.addWidget(self.spnStrokeCount)
-        self.strokeCountLayout.addWidget(self.rbtChinese)
-        self.strokeCountLayout.addWidget(self.rbtJapanese)
+        self.strokeCountLayout.addWidget(self.cmbLanguage)
         self.strokeCountLayout.addWidget(self.chkAlwaysOnTop)
         self.mainLayout.addLayout(self.strokeCountLayout)
         self.lblStrokeCount.adjustSize()
@@ -288,9 +299,12 @@ class MainWindow(QWidget):
         
     def onLanguageChanged(self, checked):
         self.setCursor(Qt.WaitCursor)
-        if self.rbtChinese.isChecked():
+        currLanguage = self.cmbLanguage.itemData(self.cmbLanguage.currentIndex())
+        if currLanguage == "CHINESE":
+            print("chinese")
             self.dict = self.cedictDictionary
         else:
+            print("japanese")
             self.dict = self.edictDictionary
         self.ontxtOutputAggregationTextChanged()
         self.handleSelectionChangesOrCursorMovements()
