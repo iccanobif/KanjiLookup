@@ -115,6 +115,9 @@ class MainWindow(QWidget):
         self.chkAlwaysOnTop.stateChanged.connect(self.onchkAlwaysOnTopStateChanged)
         self.chkAlwaysOnTop.setCheckState(Qt.Unchecked)
         
+        self.chkListenToClipboard = QCheckBox("Listen to clipboard", self)
+        self.chkListenToClipboard.setCheckState(Qt.Unchecked)
+        
         
         #Layout
 
@@ -141,15 +144,23 @@ class MainWindow(QWidget):
         self.strokeCountLayout.addWidget(self.spnStrokeCount)
         self.strokeCountLayout.addWidget(self.cmbLanguage)
         self.strokeCountLayout.addWidget(self.chkAlwaysOnTop)
+        self.strokeCountLayout.addWidget(self.chkListenToClipboard)
         self.mainLayout.addLayout(self.strokeCountLayout)
         self.lblStrokeCount.adjustSize()
 
+        
+        QApplication.clipboard().dataChanged.connect(self.clipboardChanged)
         # pid = ctypes.windll.kernel32.GetCurrentProcessId()
         # ctypes.windll.user32.AllowSetForegroundWindow(pid)
         
         # t = hotkeythread.HotkeyThread()
         # t.registerHotkey(win32con.MOD_CONTROL | win32con.MOD_ALT, ord("K"), self.focusWindow, self)
         # t.start()
+        
+    def clipboardChanged(self):
+        if self.chkListenToClipboard.checkState() == Qt.Checked:
+            self.txtOutputAggregation.setText(QApplication.clipboard().text())
+    
         
     def focusWindow(self):
         self.showNormal()
