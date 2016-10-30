@@ -152,7 +152,15 @@ class EdictDictionary:
                 """.format(text = text.replace("'", "\'"), katakanaText = katakanaText.replace("'", "\'"))
 
         for entry in self.connection.execute(query).fetchall():
-            output.append(entry[0])
+            entry = entry[0]
+            entry = entry.replace("</a>", "") \
+                         .replace("</img>", "") \
+                         .replace("</spellout>", "") \
+                         .replace("</section>", "")
+            entry = re.sub("<(a|img|section|spellout) .*?>", "", entry) #remove links
+            # entry = re.sub("<img .*?>", "", entry) #remove images
+                        
+            output.append(entry)
 
         # self._translationsCache[text] = output
         
@@ -257,15 +265,16 @@ class EdictDictionary:
         return output
 
 if __name__ == '__main__':
-    d = EdictDictionary()
+    d = EdictDictionary(loadToMemory = False, loadEnamdict = False)
     #print(d.getTranslation("hiraita"))
     #print("\n".join(d.dictionaryE2J["me"]))
     # for w in sorted(d.dictionaryE2J.keys(), key=lambda x: -len(d.dictionaryE2J[x])):
         # if len(d.dictionaryE2J[w]) == 1:
             # quit()
         # print(w, len(d.dictionaryE2J[w]))
-    print(d.getTranslation("泣き"))
-    # print(d.getTranslation("食べた"))
+    # print(d.getTranslation("泣き"))
+    print(d.getTranslation("食べた")) #this has links
+    print(d.getTranslation("彼")) #this has images
     # print(d.getTranslation("泣きたい"))
     # print(d.getTranslation("行った"))
     # print(d.getTranslation("行かない"))
