@@ -1,4 +1,5 @@
 import utf8console
+import kroman
 
 # KENGDIC entry sample:
 # 140261	전원의  행진	NULL	promenade	1	1	engdic	2006-01-16 00:52:46	19	NULL	140261	t
@@ -27,9 +28,13 @@ class KengdicDictionary:
                 split = line.split("\t")
                 hangul = split[1]
                 english = split[3]
-                self.__addToDictionary(hangul, hangul + ": " + english)
+                romanizedHangul = kroman.parse(hangul)
+
+                itemText = hangul + "(" + romanizedHangul + "): " + english
+                
+                self.__addToDictionary(hangul, itemText)
                 for e in english.split(" "):
-                    self.__addToDictionary(e, hangul + ": " + english)
+                    self.__addToDictionary(e, itemText)
 
     def getTranslation(self, text):
         if self.dictionary is None:
