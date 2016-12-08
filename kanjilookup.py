@@ -158,6 +158,7 @@ class MainWindow(QWidget):
         # t.start()
         
     def clipboardChanged(self):
+        print("clipboardChanged()")
         if self.chkListenToClipboard.checkState() == Qt.Checked:
             self.txtOutputAggregation.setText(QApplication.clipboard().text())
     

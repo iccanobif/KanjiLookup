@@ -273,8 +273,11 @@ if __name__ == '__main__':
             # quit()
         # print(w, len(d.dictionaryE2J[w]))
     # print(d.getTranslation("泣き"))
-    print(d.getTranslation("食べた")) #this has links
-    print(d.getTranslation("彼")) #this has images
+    # print(d.getTranslation("食べた")) #this has links
+    # print(d.getTranslation("彼")) #this has images
+    print(str(time.clock()), "about to query 'e'")
+    print(len(d.getTranslation("e"))) #this is particularly slow to render
+    print(str(time.clock()), "queried 'e'")
     # print(d.getTranslation("泣きたい"))
     # print(d.getTranslation("行った"))
     # print(d.getTranslation("行かない"))

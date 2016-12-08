@@ -4,4 +4,6 @@ dist
 build
 gui.spec
 /savedwords.txt
-db.db
+/datasets/edict.sql
+/datasets/enamdict.sql
+/utility da non committare
