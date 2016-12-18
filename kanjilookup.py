@@ -67,7 +67,7 @@ class MainWindow(QWidget):
         self.lstOutput.setWrapping(True)
         self.lstOutput.setMaximumHeight(250)
         self.lstOutput.itemActivated.connect(self.onlstOutputItemActivated)
-        self.lstOutput.setStyleSheet("QListWidget {font-size: 70px}")
+        self.lstOutput.setStyleSheet("QListWidget {font-size: 50px}")
 
         self.txtOutputAggregation = QTextEdit(self)
         self.txtOutputAggregation.setStyleSheet("font-size: 50px")
@@ -89,7 +89,7 @@ class MainWindow(QWidget):
 
         self.btnSearchWord = QPushButton("Search...", self)
         self.btnSearchWord.clicked.connect(self.onbtnSearchWordClicked)
-        
+
         self.lblSplittedWordsList = QLabel(self)
         self.lblSplittedWordsList.setStyleSheet("font-size: 20px")
         self.lblSplittedWordsList.linkActivated.connect(self.onlblSplittedWordsListlinkActivated)
@@ -209,7 +209,7 @@ class MainWindow(QWidget):
         else:
             if (QApplication.keyboardModifiers() & Qt.ShiftModifier) == Qt.ShiftModifier:
                 self.txtOutputAggregation.setPlainText("")
-            self.txtOutputAggregation.insert(item.text())
+            self.txtOutputAggregation.insertPlainText(item.text())
             
     def onbtnShowRadicalsClicked(self):
         text = ""
@@ -348,7 +348,7 @@ class MainWindow(QWidget):
         if show:
             self.show()
             #self.move(originalPosition)
-        
+            
 class Popup(QDialog):
     def __init__(self, parent, text):
         print("def __init__(self, parent, text):")
