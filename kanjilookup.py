@@ -72,6 +72,7 @@ class MainWindow(QWidget):
         self.txtOutputAggregation = QTextEdit(self)
         self.txtOutputAggregation.setStyleSheet("font-size: 50px")
         self.txtOutputAggregation.setMaximumHeight(120)
+        self.txtOutputAggregation.setTabChangesFocus(True)
         self.txtOutputAggregation.textChanged.connect(self.ontxtOutputAggregationTextChanged)
         self.txtOutputAggregation.selectionChanged.connect(self.handleSelectionChangesOrCursorMovements)
         self.txtOutputAggregation.cursorPositionChanged.connect(self.handleSelectionChangesOrCursorMovements)
