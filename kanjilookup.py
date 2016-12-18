@@ -65,6 +65,7 @@ class MainWindow(QWidget):
         self.lstOutput = QListWidget(self)
         self.lstOutput.setFlow(QListView.LeftToRight)
         self.lstOutput.setWrapping(True)
+        self.lstOutput.setMaximumHeight(250)
         self.lstOutput.itemActivated.connect(self.onlstOutputItemActivated)
         self.lstOutput.setStyleSheet("QListWidget {font-size: 70px}")
 
