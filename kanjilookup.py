@@ -68,8 +68,9 @@ class MainWindow(QWidget):
         self.lstOutput.itemActivated.connect(self.onlstOutputItemActivated)
         self.lstOutput.setStyleSheet("QListWidget {font-size: 70px}")
 
-        self.txtOutputAggregation = QLineEdit(self)
-        self.txtOutputAggregation.setStyleSheet("font-size: 70px")
+        self.txtOutputAggregation = QTextEdit(self)
+        self.txtOutputAggregation.setStyleSheet("font-size: 50px")
+        self.txtOutputAggregation.setMaximumHeight(120)
         self.txtOutputAggregation.textChanged.connect(self.ontxtOutputAggregationTextChanged)
         self.txtOutputAggregation.selectionChanged.connect(self.handleSelectionChangesOrCursorMovements)
         self.txtOutputAggregation.cursorPositionChanged.connect(self.handleSelectionChangesOrCursorMovements)
@@ -160,7 +161,7 @@ class MainWindow(QWidget):
     def clipboardChanged(self):
         print("clipboardChanged()")
         if self.chkListenToClipboard.checkState() == Qt.Checked:
-            self.txtOutputAggregation.setText(QApplication.clipboard().text())
+            self.txtOutputAggregation.setPlainText(QApplication.clipboard().text())
     
         
     def focusWindow(self):
@@ -205,12 +206,12 @@ class MainWindow(QWidget):
             self.lstOutput.item(100).setSelected(True)
         else:
             if (QApplication.keyboardModifiers() & Qt.ShiftModifier) == Qt.ShiftModifier:
-                self.txtOutputAggregation.setText("")
+                self.txtOutputAggregation.setPlainText("")
             self.txtOutputAggregation.insert(item.text())
             
     def onbtnShowRadicalsClicked(self):
         text = ""
-        for k in self.txtOutputAggregation.text():
+        for k in self.txtOutputAggregation.toPlainText():
             radicals = lookup.getRadicalsFromKanji(k)
             if len(radicals) == 0: continue
             
@@ -244,16 +245,16 @@ class MainWindow(QWidget):
         
     def onbtnSearchWordClicked(self):
     
-        if self.txtOutputAggregation.text().strip() == "":
+        if self.txtOutputAggregation.toPlainText().strip() == "":
             return
             
         self.setCursor(Qt.WaitCursor)
             
         text = ""
-        if self.txtOutputAggregation.hasSelectedText():
-            text = self.txtOutputAggregation.selectedText()
+        if self.txtOutputAggregation.textCursor().hasSelection():
+            text = self.txtOutputAggregation.textCursor().selectedText()
         else:
-            text = self.txtOutputAggregation.text()
+            text = self.txtOutputAggregation.toPlainText()
 
         popup = ListPopup(self)
         # print("popup.show(self.dict.findWordsFromFragment(text))")
@@ -262,10 +263,10 @@ class MainWindow(QWidget):
         self.unsetCursor()
         
     def onbtnSaveWordClicked(self):
-        if self.txtOutputAggregation.hasSelectedText():
-            text = self.txtOutputAggregation.selectedText()
+        if self.txtOutputAggregation.textCursor().hasSelection():
+            text = self.txtOutputAggregation.textCursor().selectedText()
         else:
-            text = self.txtOutputAggregation.text()
+            text = self.txtOutputAggregation.toPlainText()
             
         f = open("savedwords.txt", "a", encoding="utf8")
         f.write(text + "\n")
@@ -273,10 +274,9 @@ class MainWindow(QWidget):
         QMessageBox.information(self, "saved", "saved")
         
     def ontxtOutputAggregationTextChanged(self):
-        # print(self.txtOutputAggregation.text())
-        self.historyWindow.addEntry(self.txtOutputAggregation.text())
+        self.historyWindow.addEntry(self.txtOutputAggregation.toPlainText())
         
-        input = self.txtOutputAggregation.text()
+        input = self.txtOutputAggregation.toPlainText()
         
         if input == "":
             self.txtTranslations.setPlainText("")
@@ -295,16 +295,16 @@ class MainWindow(QWidget):
                 
     def handleSelectionChangesOrCursorMovements(self):
         # print(str(time.clock()), "self.handleSelectionChangesOrCursorMovements() - inizio")
-        if self.txtOutputAggregation.hasSelectedText():
-            self.showTranslations(self.txtOutputAggregation.selectedText())
+        if self.txtOutputAggregation.textCursor().hasSelection():
+            self.showTranslations(self.txtOutputAggregation.textCursor().selectedText())
         else:
             # This is utter rubbish... Relies on the fact that splitSentence() returns
             # all the extra whitespace between words, and weird things happen when the cursor's
             # between two words
             # merda = len(re.sub("\s*?", "", self.txtOutputAggregation.text()[:newPosition]))
             i = 0
-            for w in self.dict.splitSentence(self.txtOutputAggregation.text()):
-                if len(w) + i >= self.txtOutputAggregation.cursorPosition():
+            for w in self.dict.splitSentence(self.txtOutputAggregation.toPlainText()):
+                if len(w) + i >= self.txtOutputAggregation.textCursor().position():
                     self.showTranslations(w)
                     return
                 else:
