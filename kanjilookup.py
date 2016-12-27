@@ -37,9 +37,9 @@ class MainWindow(QWidget):
     def eventFilter(self, object, event):
         if object == self.txtOutputAggregation:
             if (event.type() == QEvent.KeyPress):
-                if event.key() == Qt.Key_Up:
+                if event.modifiers() == Qt.ControlModifier and event.key() == Qt.Key_Up:
                     self.cmbLanguage.setCurrentIndex((self.cmbLanguage.currentIndex() + 1) % self.cmbLanguage.count() )
-                if event.key() == Qt.Key_Down:
+                if event.modifiers() == Qt.ControlModifier and event.key() == Qt.Key_Down:
                     self.cmbLanguage.setCurrentIndex((self.cmbLanguage.currentIndex() - 1) % self.cmbLanguage.count() )
                 return False
         # if I got here, it means it's an event I'll just let Qt handle in its default way
@@ -73,6 +73,7 @@ class MainWindow(QWidget):
         self.txtOutputAggregation.setStyleSheet("font-size: 50px")
         self.txtOutputAggregation.setMaximumHeight(120)
         self.txtOutputAggregation.setTabChangesFocus(True)
+        self.txtOutputAggregation.setAcceptRichText(False)
         self.txtOutputAggregation.textChanged.connect(self.ontxtOutputAggregationTextChanged)
         self.txtOutputAggregation.selectionChanged.connect(self.handleSelectionChangesOrCursorMovements)
         self.txtOutputAggregation.cursorPositionChanged.connect(self.handleSelectionChangesOrCursorMovements)
