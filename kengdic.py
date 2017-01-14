@@ -33,6 +33,8 @@ class KengdicDictionary:
                 itemText = hangul + "(" + romanizedHangul + "): " + english
                 
                 self.__addToDictionary(hangul, itemText)
+                self.__addToDictionary(romanizedHangul, itemText)
+                self.__addToDictionary(romanizedHangul.replace("-", ""), itemText)
                 for e in english.split(" "):
                     self.__addToDictionary(e, itemText)
 
@@ -95,4 +97,6 @@ class KengdicDictionary:
 if __name__ == '__main__':
     d = KengdicDictionary()
     print("\n\t".join(d.getTranslation("여보세요")))
+    print("\n\t".join(d.getTranslation("yeo-bo-se-yo")))
+    print("\n\t".join(d.getTranslation("yeoboseyo")))
     
