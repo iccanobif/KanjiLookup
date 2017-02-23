@@ -37,9 +37,9 @@ class MainWindow(QWidget):
     def eventFilter(self, object, event):
         if object == self.txtOutputAggregation:
             if (event.type() == QEvent.KeyPress):
-                if event.modifiers() == Qt.ControlModifier and event.key() == Qt.Key_Up:
-                    self.cmbLanguage.setCurrentIndex((self.cmbLanguage.currentIndex() + 1) % self.cmbLanguage.count() )
                 if event.modifiers() == Qt.ControlModifier and event.key() == Qt.Key_Down:
+                    self.cmbLanguage.setCurrentIndex((self.cmbLanguage.currentIndex() + 1) % self.cmbLanguage.count() )
+                if event.modifiers() == Qt.ControlModifier and event.key() == Qt.Key_Up:
                     self.cmbLanguage.setCurrentIndex((self.cmbLanguage.currentIndex() - 1) % self.cmbLanguage.count() )
                 return False
         # if I got here, it means it's an event I'll just let Qt handle in its default way
