@@ -95,6 +95,10 @@ class MainWindow(QWidget):
         self.lblSplittedWordsList.setStyleSheet("font-size: 20px")
         self.lblSplittedWordsList.linkActivated.connect(self.onlblSplittedWordsListlinkActivated)
 
+        self.scrollAreaSplittedWordsList = QScrollArea(self)
+        self.scrollAreaSplittedWordsList.setWidget(self.lblSplittedWordsList)
+        self.scrollAreaSplittedWordsList.setWidgetResizable(True)
+
         self.txtTranslations = QTextBrowser(self)
         self.txtTranslations.setReadOnly(True)
         self.txtTranslations.setOpenLinks(False)
@@ -139,7 +143,7 @@ class MainWindow(QWidget):
         self.bottomLayout.addLayout(self.buttonsLayout)
 
         self.mainLayout.addLayout(self.bottomLayout)
-        self.mainLayout.addWidget(self.lblSplittedWordsList)
+        self.mainLayout.addWidget(self.scrollAreaSplittedWordsList)
 
         self.mainLayout.addWidget(self.txtTranslations)
 
