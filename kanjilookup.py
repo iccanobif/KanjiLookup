@@ -98,6 +98,7 @@ class MainWindow(QWidget):
         self.scrollAreaSplittedWordsList = QScrollArea(self)
         self.scrollAreaSplittedWordsList.setWidget(self.lblSplittedWordsList)
         self.scrollAreaSplittedWordsList.setWidgetResizable(True)
+        self.scrollAreaSplittedWordsList.setMaximumHeight(45)
 
         self.txtTranslations = QTextBrowser(self)
         self.txtTranslations.setReadOnly(True)
