@@ -55,52 +55,24 @@ class EdictDictionary:
         else:
             self.enamdict[word].append(entry)
     
-    def __init__(self, loadToMemory = True, loadEnamdict = True):
+    def __init__(self, loadEnamdict = True):
         self._splitterCache = dict()
-        # self._translationsCache = dict()
-        if loadToMemory:
-            self.connection = sqlite3.connect(":memory:")
-            self.connection.create_function("REGEXP", 2, re_fn)
-            self.connection.execute("ATTACH DATABASE 'db.db' AS src")
+        self.connection = sqlite3.connect("db.db")
             
-            for table in self.connection.execute("""select name 
-                                            from src.sqlite_master
-                                            where type = 'table'""").fetchall():
-                table = table[0]
-                query = "CREATE TABLE {0} AS SELECT * FROM SRC.{0}".format(table)
-                print(str(time.clock()), query)
-                self.connection.execute(query)
-                
-            for table in self.connection.execute("""select sql 
-                                            from src.sqlite_master
-                                            where type = 'index'""").fetchall():
-                query = table[0]
-                print(str(time.clock()), query)
-                self.connection.execute(query)
-        else:
-            self.connection = sqlite3.connect("db.db")
-            
-        if loadEnamdict == True:
-            print("Loading ENAMDICT..")
-            with open("datasets/enamdict.utf", "r", encoding="utf8") as f:
-                for line in f.readlines():
-                    line = line.strip()
-                    name = line[0:line.find("/")]
-                    secondaryReadingStart = name.find("[")
-                    secondaryReadingEnd = name.find("]")
-                    if secondaryReadingStart == -1: # there's only one reading
-                        self.__addWordToEnamdict(name.strip(), line)
-                    else:
-                        self.__addWordToEnamdict(name[0:secondaryReadingStart].strip(), line)
-                        self.__addWordToEnamdict(name[secondaryReadingStart+1:secondaryReadingEnd].strip(), line)
+        # if loadEnamdict == True:
+        #     print("Loading ENAMDICT..")
+        #     with open("datasets/enamdict.utf", "r", encoding="utf8") as f:
+        #         for line in f.readlines():
+        #             line = line.strip()
+        #             name = line[0:line.find("/")]
+        #             secondaryReadingStart = name.find("[")
+        #             secondaryReadingEnd = name.find("]")
+        #             if secondaryReadingStart == -1: # there's only one reading
+        #                 self.__addWordToEnamdict(name.strip(), line)
+        #             else:
+        #                 self.__addWordToEnamdict(name[0:secondaryReadingStart].strip(), line)
+        #                 self.__addWordToEnamdict(name[secondaryReadingStart+1:secondaryReadingEnd].strip(), line)
 
-    
-    class DictionaryEntry:
-        def __init__(self):
-            self.translation = ""
-            self.isConjugated = False
-            self.conjugationType = ""
-        
     def normalizeInput(self, text):
         text = romkan.to_hiragana(text.replace(" ", ""))    
         text = romkan.katakana_to_hiragana(text.lower())
@@ -108,8 +80,6 @@ class EdictDictionary:
 
     def getTranslation(self, text):
         # print(str(time.clock()), "getTranslation(self, text) - INIZIO")
-        # if text in self._translationsCache:
-            # return self._translationsCache[text]
 
         if text.strip() == "":
             return None
@@ -120,52 +90,18 @@ class EdictDictionary:
                  
         text = self.normalizeInput(text)
         
-        katakanaText = romkan.hiragana_to_katakana(text)
+        # katakanaText = romkan.hiragana_to_katakana(text) # Why did i do this?
 
         query = """
-                select ifnull((select group_concat(acc.base_form, '/')
-                                 from pitch_accents acc
-                                 where acc.kanji = l.uninflectedLemma), '') || ' ' || a.content,
-                       1 as o
-                  from edict_lemmas l
-                  join edict_articles a on a.id = l.articleId
-                 where l.lemma = '{text}' 
-                union
-                select replace(
-                        '<b>' || kl.lemmatitle || ' - ' || kl.lemmasubtitle 
-                              || ' (' || ifnull((select group_concat(acc.base_form, '/')
-                                                        from pitch_accents acc
-                                                        where acc.kanji = kl.lemmatitle), '') 
-                              || ')</b><br/>' || ka.content,
-                        '()',
-                        ''),
-                       2 as o
-                  from kotobank_lemmas kl
-                  join kotobank_rel_lemma_article rel on kl.id = rel.lemmaid
-                  join kotobank_articles ka on ka.id = rel.articleId
-                 where (kl.lemmatitle = '{text}' 
-                            or kl.lemmasubtitle = '{katakanaText}'
-                            or kl.lemmatitle in (select el.uninflectedlemma from edict_lemmas el where el.lemma = '{text}')
-                            or kl.lemmasubtitle in (select el.uninflectedlemma from edict_lemmas el where el.lemma = '{katakanaText}')
-                        ) and ka.dictionary = 'デジタル大辞泉の解説'
-                 order by o
-                """.format(text = text.replace("'", "\'"), katakanaText = katakanaText.replace("'", "\'"))
+                SELECT ARTICLE_CONTENT FROM LEMMA L
+                  JOIN ARTICLE A ON A.ARTICLE_ID = L.ARTICLE_ID
+                 WHERE L.LEMMA_TEXT = '{text}'
+                """.format(text = text.replace("'", "\'"))
 
         for entry in self.connection.execute(query).fetchall():
             entry = entry[0]
-            entry = entry.replace("</a>", "") \
-                         .replace("</img>", "") \
-                         .replace("</spellout>", "") \
-                         .replace("</section>", "")
-            entry = re.sub("<(a|img|section|spellout) .*?>", "", entry) #remove links
-            # entry = re.sub("<img .*?>", "", entry) #remove images
-                        
             output.append(entry)
 
-        # self._translationsCache[text] = output
-        
-        # print(str(time.clock()), "getTranslation(self, text) - FINE")
-        
         if text in self.enamdict:
             output += self.enamdict[text]
         
@@ -185,17 +121,9 @@ class EdictDictionary:
         katakanaText = romkan.hiragana_to_katakana(text)
 
         query = """
-                select 1
-                  from edict_lemmas l
-                 where lemma = '{0}' 
-                 union all
-                select 1
-                  from kotobank_lemmas kl
-                 where lemmatitle = '{0}' 
-                 union all
-                 select 1
-                  from kotobank_lemmas kl
-                 where lemmasubtitle = '{1}'
+                SELECT 1
+                  FROM LEMMA L
+                 WHERE LEMMA_TEXT = '{0}' 
                 """.format(text.replace("'", "\'"), katakanaText.replace("'", "\'"))
 
         output = len(self.connection.execute(query).fetchall()) > 0
@@ -211,21 +139,15 @@ class EdictDictionary:
         # return list(sorted(filter(lambda x: re.search("^" + text + "$", x) is not None, self.dictionaryJ2E.keys())))
         
         query = """
-            select lemma
-              from edict_lemmas l
-             where lemma REGEXP '{0}' 
-             union all
-            select lemmatitle
-              from kotobank_lemmas kl
-             where lemmatitle REGEXP '{0}'
+            SELECT LEMMA
+              FROM LEMMA L
+             WHERE LEMMA_TEXT REGEXP '{0}' 
             """.format(text.replace("'", "\'"))
             
         return [x[0] for x in self.connection.execute(query).fetchall()]
 
-        
     # The following sentence still trips the splitter up: it does がそ/れ instead of が/それ (れ is the stem of ichidan verb れる)...
     # print(splitSentence("あなたがそれを気に入るのはわかっていました。"))
-    
 
     # Always tries to make the first word as long as possible. Not resistant
     # against gibberish
