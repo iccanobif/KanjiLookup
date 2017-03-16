@@ -7,3 +7,4 @@ gui.spec
 /datasets/edict.sql
 /datasets/enamdict.sql
 /utility da non committare
+db.db
