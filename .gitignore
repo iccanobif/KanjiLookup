@@ -8,3 +8,4 @@ gui.spec
 /datasets/enamdict.sql
 /utility da non committare
 db.db
+builddatabase.sql
