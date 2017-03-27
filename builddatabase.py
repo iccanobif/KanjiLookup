@@ -1,4 +1,4 @@
-import re, utf8console, time, romkan, uuid, subprocess, os, requests
+import re, utf8console, time, romkan, uuid, subprocess, os, requests, zipfile, io
 from bs4 import BeautifulSoup
 
 # What would be better? Pour all the data from the various text files into separate
@@ -7,7 +7,7 @@ from bs4 import BeautifulSoup
 # Maybe with the objects it's better since I'll probably have to change their values
 # around a few times before they're ready to be converted into SQL statements.
 
-filenamePitchAccents = "datasets/pitchaccents.html"
+filenamePitchAccents = "datasets/pitchaccents.zip"
 filenameEdict = "datasets/edict2u"
 sqlFileName = "datasets/builddatabase.sql"
 dbFileName = "db.db"
@@ -272,8 +272,9 @@ def loadPitchAccent(fetchFromWebsite):
             f.write(fullHtml)
 
     log("Parsing pitch accent file")
-    with open(filenamePitchAccents, "r", encoding="utf8") as f:
-        html = f.read()
+    with zipfile.ZipFile(filenamePitchAccents) as pitchAccentsZip:
+        with pitchAccentsZip.open("pitchaccents.html", "r") as f:
+            html = io.TextIOWrapper(f, encoding="utf8").read()
     soup = BeautifulSoup(html)
     log("Loaded soup")
     # print("1グループの動詞\t\t辞書形\t〜ます形\t〜て形\t〜た形\t〜ない形\t〜なかった形\t〜ば形\t使役形\t受身形\t命令形\t可能形\t〜う形")
@@ -354,11 +355,7 @@ def main():
             os.remove(dbFileName)
         log("Starting sqlite")
         subprocess.call(["sqlite", dbFileName], stdin=f)
-    #os.remove(sqlFileName)
+    os.remove(sqlFileName)
     log("Done")
-
-    # select * from lemma l
-    # join article a on a.article_id = l.article_id
-    # where l.lemma_text = '起こった'
 
 main()

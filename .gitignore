@@ -10,3 +10,5 @@ gui.spec
 db.db
 builddatabase.sql
 .vscode
+edict2u.test
+pitchaccents.html.test
