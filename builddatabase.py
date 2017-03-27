@@ -1,16 +1,20 @@
-import re
-import utf8console
-import time
-import romkan
-import uuid
-import subprocess
-import os
+import re, utf8console, time, romkan, uuid, subprocess, os, requests
+from bs4 import BeautifulSoup
 
 # What would be better? Pour all the data from the various text files into separate
 # sqlite tables and then merge them together with sql, or put everything in python
 # objects, work on those and then make the scripts?
 # Maybe with the objects it's better since I'll probably have to change their values
 # around a few times before they're ready to be converted into SQL statements.
+
+filenamePitchAccents = "datasets/pitchaccents.html"
+filenameEdict = "datasets/edict2u"
+sqlFileName = "datasets/builddatabase.sql"
+dbFileName = "db.db"
+
+def log(string):
+    print(str(time.clock()), string)
+    pass
 
 def escapeSql(text):
     return text.replace("'", "''")
@@ -21,15 +25,20 @@ class Article:
     lemmaTextWithPitchAccent = None
     lemmas = []
     conjugatedLemmas = []
+    pitchAccents = []
 
     def __init__(self, articleContent):
         self.articleId = uuid.uuid1()
         self.articleContent = articleContent
 
     def toSqlStatement(self):
-        return "insert into ARTICLE (ARTICLE_ID, ARTICLE_CONTENT) values ('{id}', '{content}');\n" \
-            .format(id=self.articleId, content=escapeSql(self.articleContent.strip()))
+        if len(self.pitchAccents) > 0:
+            content = (" / ".join(self.pitchAccents) + ": " + self.articleContent).strip()
+        else:
+            content = self.articleContent.strip()
 
+        return "insert into ARTICLE (ARTICLE_ID, ARTICLE_CONTENT) values ('{id}', '{content}');\n" \
+            .format(id=self.articleId, content=escapeSql(content))
 
 class Lemma:
     lemmaId = None
@@ -54,13 +63,6 @@ class Lemma:
 #     def toSqlStatement(self):
 #         return "insert into REL_LEMMA_ARTICLE (LEMMA_ID, ARTICLE_ID) values ('{lemmaId}', '{articleId}');\n" \
 #             .format(lemmaId = self.lemmaId, lemmaText = self.lemmaText)
-
-
-# GLOBALS
-lemmas = dict()  # the key is the lemmaTexts
-articles = []
-relsLemmaArticle = dict()  # the key is the lemmaId
-
 
 def getArticlesFromEdict():
     # EDICT2 entry samples:
@@ -224,8 +226,8 @@ def getArticlesFromEdict():
     
     articles = []
 
-    print("Reading edict")
-    with open("datasets/edict2u", "r", encoding="utf8") as f:
+    log("Reading edict")
+    with open(filenameEdict, "r", encoding="utf8") as f:
         for line in f.readlines():
             # remove entry id (eg. "EntL1000920X")
             entryIdIndex = line.rfind("/Ent")
@@ -256,13 +258,82 @@ def getArticlesFromEdict():
     #              .replace("</section>", "")
     # entry = re.sub("<(a|img|section|spellout) .*?>", "", entry) #remove links
 
+def loadPitchAccent(fetchFromWebsite):
+    if fetchFromWebsite:
+        url = "http://www.gavo.t.u-tokyo.ac.jp/ojad/search/index/display:print/sortprefix:custom/narabi1:proc_asc/narabi2:proc_asc/narabi3:proc_asc/yure:visible/curve:invisible/details:invisible/limit:100/page:"
+        lastPage = 128
+        fullHtml = ""
+        log("Fetching pitch accent")
+        for p in range(1, lastPage + 1):
+            log("Fetching page", p)
+            r = requests.get(url + str(p))
+            fullHtml += r.text
+        with open(filenamePitchAccents, "w", encoding="utf8") as f:
+            f.write(fullHtml)
+
+    log("Parsing pitch accent file")
+    with open(filenamePitchAccents, "r", encoding="utf8") as f:
+        html = f.read()
+    soup = BeautifulSoup(html)
+    log("Loaded soup")
+    # print("1グループの動詞\t\t辞書形\t〜ます形\t〜て形\t〜た形\t〜ない形\t〜なかった形\t〜ば形\t使役形\t受身形\t命令形\t可能形\t〜う形")
+    #f.write("kanji		dictionary form	masu	te-form	〜past	negative	past negative	conditional-ba	causative	passive	imperative	potential	volitive\n")
+    
+    pitchAccents = dict()
+
+    trs = soup.find_all("tr")
+    
+    for tr in trs:
+        if len(tr.find_all("th")) > 0:
+            continue
+        
+        word = tr.find_all("p")[0].text
+
+        # In the first column there might be both the dictionary form and -masu form in kanji separatad by a dot...
+        # I'll ignore the -masu form
+        if word.find("・") != -1:
+            word = word[0:word.find("・")]
+        
+        cell = tr.find_all("td")[2]
+        moras = list(filter(lambda x: "mola_" in "".join(x["class"]), cell.find_all("span")))
+        if len(moras) == 0:
+            continue
+        
+        conjugationHtml = ""
+
+        for m in moras:
+            if "accent_top" in m["class"]:
+                conjugationHtml += "<span style='text-decoration: overline'>"
+            elif "accent_plain" in m["class"]:
+                conjugationHtml += "<span style='text-decoration: overline'>"
+            else:
+                conjugationHtml += "<span>"
+            
+            conjugationHtml += "".join([t.text.strip() for t in m.find_all("span", class_="char")])
+            
+            if "accent_top" in m["class"]:
+                conjugationHtml += "<span style='background-color: black; font-size:4px'>a</span>"
+            conjugationHtml += "</span>"
+        
+        if not word in pitchAccents:
+            pitchAccents[word] = conjugationHtml
+        else:
+            if pitchAccents[word] != conjugationHtml:
+                pitchAccents[word] += " / " + conjugationHtml
+        
+    return pitchAccents
+
 def main():
+
     articles = getArticlesFromEdict()
-    sqlFileName = "builddatabase.sql"
-    dbFileName = "db.db"
+    pitchAccents = loadPitchAccent(False)
+
+    # Adding pitch accents to articles
+    for a in articles:
+        a.pitchAccents = [pitchAccents[lemma] for lemma in a.lemmas if lemma in pitchAccents]
 
     with open(sqlFileName, "w", encoding="utf8") as f:
-        print("Writing edict")
+        log("Writing edict")
         f.write("""CREATE TABLE ARTICLE (ARTICLE_ID, ARTICLE_CONTENT); 
                 CREATE TABLE LEMMA (LEMMA_TEXT, ARTICLE_ID);
                 """)
@@ -281,10 +352,10 @@ def main():
     with open(sqlFileName, "r", encoding="utf8") as f:
         if (os.path.isfile(dbFileName)):
             os.remove(dbFileName)
-        print("Starting sqlite")
+        log("Starting sqlite")
         subprocess.call(["sqlite", dbFileName], stdin=f)
     #os.remove(sqlFileName)
-    print("Done")
+    log("Done")
 
     # select * from lemma l
     # join article a on a.article_id = l.article_id

@@ -1,0 +1,32 @@
+TODO:
+- Make a simpler schema for the DB
+    - ARTICLE
+        - ARTICLE_ID
+        - ARTICLE_CONTENT (html)
+        - LEMMA_TEXT_WITH_PITCH_ACCENT
+    - LEMMA (one line for every possible conjugation)
+        - LEMMA_ID
+        - LEMMA_TEXT (can be either hiragana or kanji)
+        - UNINFLECTED_LEMMA (needed for linking with the kotobank stuff)
+    - REL_LEMMA_ARTICLE
+        - LEMMA_ID
+        - ARTICLE_ID
+
+LEMMA and REL_LEMMA_ARTICLE could be denormalized, to improve performance a bit... better to do this only after having tried with all three tables
+
+Steps for making a script for building the DB:
+    - For each row in EDICT:
+        - Add an article
+        - Calculate all the possible lemmas (with the kanji, the kana version and every possible inflection) linked to the article, add them to the LEMMA table if they're not there and keep a list of all the lemma IDs that can be linked to the article
+            - NOTE: when populating UNINFLECTED_LEMMA, keep the kanji version even for the rows with the text converted to kana, here, so i can use it to link each pitch accent entry with the inflected lemmas too... But what do i do for the items with more than one kanji version and more than one kana version (multiple possibile readings)?
+            Maybe I can solve this by keeping the pitch accent on the article instead of the lemma, or at least all the possible pitch accents in case of ambiguity
+        - Add rows to REL_LEMMA_ARTICLE
+    - For each item in the pitch accent database:
+
+current design (to scrap):
+CREATE TABLE edict_articles (id, content);
+CREATE TABLE edict_lemmas (lemma, uninflectedLemma, articleId, isInflected);
+CREATE TABLE kotobank_articles (articleTitle, lemmaId, dictionary, content, id);
+CREATE TABLE kotobank_lemmas (id, lemmaTitle, lemmaSubTitle, fileName);
+CREATE TABLE kotobank_rel_lemma_article (lemmaId, articleId);
+CREATE TABLE pitch_accents (kanji, base_form,masu_form,te_form,past, negative, past_negative, conditional, causative, passive, imperative, potential,volitive)

@@ -56,22 +56,22 @@ class EdictDictionary:
             self.enamdict[word].append(entry)
     
     def __init__(self, loadEnamdict = True):
-        self._splitterCache = dict()
+        self.existsCache = dict()
         self.connection = sqlite3.connect("db.db")
             
-        # if loadEnamdict == True:
-        #     print("Loading ENAMDICT..")
-        #     with open("datasets/enamdict.utf", "r", encoding="utf8") as f:
-        #         for line in f.readlines():
-        #             line = line.strip()
-        #             name = line[0:line.find("/")]
-        #             secondaryReadingStart = name.find("[")
-        #             secondaryReadingEnd = name.find("]")
-        #             if secondaryReadingStart == -1: # there's only one reading
-        #                 self.__addWordToEnamdict(name.strip(), line)
-        #             else:
-        #                 self.__addWordToEnamdict(name[0:secondaryReadingStart].strip(), line)
-        #                 self.__addWordToEnamdict(name[secondaryReadingStart+1:secondaryReadingEnd].strip(), line)
+        if loadEnamdict == True:
+            print("Loading ENAMDICT..")
+            with open("datasets/enamdict.utf", "r", encoding="utf8") as f:
+                for line in f.readlines():
+                    line = line.strip()
+                    name = line[0:line.find("/")]
+                    secondaryReadingStart = name.find("[")
+                    secondaryReadingEnd = name.find("]")
+                    if secondaryReadingStart == -1: # there's only one reading
+                        self.__addWordToEnamdict(name.strip(), line)
+                    else:
+                        self.__addWordToEnamdict(name[0:secondaryReadingStart].strip(), line)
+                        self.__addWordToEnamdict(name[secondaryReadingStart+1:secondaryReadingEnd].strip(), line)
 
     def normalizeInput(self, text):
         text = romkan.to_hiragana(text.replace(" ", ""))    
@@ -110,11 +110,16 @@ class EdictDictionary:
         else:
             return output
             
+
+    
     def existsItem(self, text):
         # print(str(time.clock()), "existsItem(self, text) - INIZIO")
         text = text.lower()
         text = self.normalizeInput(text)
         
+        if text in self.existsCache:
+            return self.existsCache[text]
+
         if text in self.enamdict:
             return True
         
@@ -128,6 +133,7 @@ class EdictDictionary:
 
         output = len(self.connection.execute(query).fetchall()) > 0
         # print(str(time.clock()), "existsItem(self, text) - FINE")
+        self.existsCache[text] = output
         return output
             
     def findWordsFromFragment(self, text):
@@ -178,11 +184,8 @@ class EdictDictionary:
     #TODO: Instead of caching here, avoid calling splitSentence() so often from the UI...
 
     def splitSentence(self, text):
-        if text in self._splitterCache:
-            return self._splitterCache[text]
         # print(str(time.clock()), "splitSentence(self, text) - INIZIO")
         output = self.splitSentencePrioritizeFirst(text)
-        self._splitterCache[text] = output
         # print(str(time.clock()), "splitSentence(self, text) - FINE")
         return output
 
