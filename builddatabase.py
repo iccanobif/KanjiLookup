@@ -258,6 +258,27 @@ def getArticlesFromEdict():
     #              .replace("</section>", "")
     # entry = re.sub("<(a|img|section|spellout) .*?>", "", entry) #remove links
 
+def getEnamdict():
+    log("Loading enamdict")
+    articles = []
+
+    with open("datasets/enamdict.utf", "r", encoding="utf8") as f:
+        for line in f.readlines():
+            line = line.strip()
+            name = line[0:line.find("/")]
+            secondaryReadingStart = name.find("[")
+            secondaryReadingEnd = name.find("]")
+            article = Article(articleContent=line)
+
+            if secondaryReadingStart == -1: # there's only one reading
+                article.lemmas = [name.strip()]
+            else:
+                article.lemmas = [name[0:secondaryReadingStart].strip(), \
+                                 name[secondaryReadingStart+1:secondaryReadingEnd].strip()]
+
+            articles.append(article)
+    return articles
+
 def loadPitchAccent(fetchFromWebsite):
     if fetchFromWebsite:
         url = "http://www.gavo.t.u-tokyo.ac.jp/ojad/search/index/display:print/sortprefix:custom/narabi1:proc_asc/narabi2:proc_asc/narabi3:proc_asc/yure:visible/curve:invisible/details:invisible/limit:100/page:"
@@ -324,12 +345,18 @@ def loadPitchAccent(fetchFromWebsite):
         
     return pitchAccents
 
+
+
 def main():
 
     articles = getArticlesFromEdict()
     pitchAccents = loadPitchAccent(False)
+    # articles += getEnamdict() # I guess there's no need for pitch accents for these...
 
     # Adding pitch accents to articles
+    # It'd be nice to add the pitch accent only to the articles that do have the pronounciation
+    # provided in pitchAccents among their relative lemmas (example: the dataset hasa a pitch accent for 気味 when 
+    # pronounced きみ but not for the less common きあじ)
     for a in articles:
         a.pitchAccents = [pitchAccents[lemma] for lemma in a.lemmas if lemma in pitchAccents]
 
