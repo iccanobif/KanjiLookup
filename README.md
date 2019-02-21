@@ -1,6 +1,6 @@
 Requirements:
 
-- Python 3.4
-- PySide 1.2.4
+- Python 3.6
+- PySide 2
 - simpleaudio
-- win32con
+- beautifulsoup4

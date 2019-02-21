@@ -5,11 +5,12 @@ import time
 if sys.executable.endswith("pythonw.exe"):
     sys.stderr = open(os.devnull, "w")
 
-from PySide.QtCore import *
-from PySide.QtGui import *
+from PySide2.QtCore import *
+from PySide2.QtGui import *
+from PySide2.QtWidgets import *
 import simpleaudio as sa
 
-import win32con
+# import win32con
 # import hotkeythread
 
 app = QApplication(sys.argv)

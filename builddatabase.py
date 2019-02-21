@@ -381,7 +381,7 @@ def main():
         if (os.path.isfile(dbFileName)):
             os.remove(dbFileName)
         log("Starting sqlite")
-        subprocess.call(["sqlite", dbFileName], stdin=f)
+        subprocess.call(["sqlite3", dbFileName], stdin=f)
     os.remove(sqlFileName)
     log("Done")
 

@@ -2,8 +2,8 @@ import utf8console
 import random
 import sys
 import edict
-from PySide.QtCore import *
-from PySide.QtGui import *
+from PySide2.QtCore import *
+from PySide2.QtGui import *
 
 words = []
 currentWord = None
