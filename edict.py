@@ -58,6 +58,7 @@ class EdictDictionary:
     def __init__(self, loadEnamdict = True):
         self.existsCache = dict()
         self.connection = sqlite3.connect("db.db")
+        self.connection.create_function("REGEXP", 2, re_fn)
             
         if loadEnamdict == True:
             print("Loading ENAMDICT..")
@@ -93,7 +94,7 @@ class EdictDictionary:
         # katakanaText = romkan.hiragana_to_katakana(text) # Why did i do this?
 
         query = """
-                SELECT ARTICLE_CONTENT FROM LEMMA L
+                SELECT DISTINCT ARTICLE_CONTENT FROM LEMMA L
                   JOIN ARTICLE A ON A.ARTICLE_ID = L.ARTICLE_ID
                  WHERE L.LEMMA_TEXT = '{text}'
                 """.format(text = text.replace("'", "\'"))
@@ -114,12 +115,12 @@ class EdictDictionary:
     
     def existsItem(self, text):
         # print(str(time.clock()), "existsItem(self, text) - INIZIO")
-        text = text.lower()
-        text = self.normalizeInput(text)
-        
         if text in self.existsCache:
             return self.existsCache[text]
 
+        text = text.lower()
+        text = self.normalizeInput(text)
+        
         if text in self.enamdict:
             return True
         
@@ -129,9 +130,9 @@ class EdictDictionary:
                 SELECT 1
                   FROM LEMMA L
                  WHERE LEMMA_TEXT = '{0}' 
-                """.format(text.replace("'", "\'"), katakanaText.replace("'", "\'"))
+                """.format(text.replace("'", "''"), katakanaText.replace("'", "''"))
 
-        output = len(self.connection.execute(query).fetchall()) > 0
+        output = not self.connection.execute(query).fetchone() is None
         # print(str(time.clock()), "existsItem(self, text) - FINE")
         self.existsCache[text] = output
         return output
@@ -139,13 +140,13 @@ class EdictDictionary:
     def findWordsFromFragment(self, text):
         # Replace lists of radical names (ex. "{woman,roof}") with the actual possible kanjis
         for radicalList in re.findall("{.*?}", text):
-            splitted = radicalList[1:-1].lower().replace("、", ",").split(",")
-            text = text.replace(radicalList, "[" + "|".join(lookup.getKanjiFromRadicals(splitted)) + "]")
+            split = radicalList[1:-1].lower().replace("、", ",").split(",")
+            text = text.replace(radicalList, "[" + "|".join(lookup.getKanjiFromRadicals(split)) + "]")
             
         # return list(sorted(filter(lambda x: re.search("^" + text + "$", x) is not None, self.dictionaryJ2E.keys())))
         
         query = """
-            SELECT LEMMA
+            SELECT LEMMA_TEXT
               FROM LEMMA L
              WHERE LEMMA_TEXT REGEXP '{0}' 
             """.format(text.replace("'", "\'"))
@@ -158,6 +159,7 @@ class EdictDictionary:
     # Always tries to make the first word as long as possible. Not resistant
     # against gibberish
     def splitSentencePrioritizeFirst(self, text):
+        
         if text == "":
             return []
         for i in range(len(text)+1, 0, -1):
@@ -165,7 +167,8 @@ class EdictDictionary:
             if self.existsItem(firstWord):
                 return [firstWord] + self.splitSentencePrioritizeFirst(text[i:])
                 
-        return [text[0]] + self.splitSentencePrioritizeFirst(text[1:])
+        output = [text[0]] + self.splitSentencePrioritizeFirst(text[1:])
+        return output
 
     # Gibberish resistant
     # Scan the input string for the longest substring that is a real word in the dictionary.

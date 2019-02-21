@@ -13,9 +13,9 @@ with open("datasets/kradfile-u", "r", encoding="utf8") as f:
         line = line.strip()
         if line[0] == "#": continue
 
-        splitted = line.strip().split(" ")
-        kanji = splitted[0]
-        currentLineRadicals = splitted[2:]
+        split = line.strip().split(" ")
+        kanji = split[0]
+        currentLineRadicals = split[2:]
         
         for r in currentLineRadicals:
             if r not in radicalsDb:
@@ -49,8 +49,8 @@ wikiRadicals = {}
 with open("datasets/radicals", "r", encoding="utf8") as f:
     for line in f.readlines():
         if line[0] == "#": continue
-        splitted = line.strip().split("\t")
-        wikiRadicals[splitted[0]] = splitted[1].lower()
+        split = line.strip().split("\t")
+        wikiRadicals[split[0]] = split[1].lower()
         
 print("OK (" + str(time.clock() - _starttime) + " seconds)")
 

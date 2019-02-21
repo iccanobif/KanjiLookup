@@ -35,6 +35,13 @@ from historyWindow import HistoryWindow
 class MainWindow(QWidget):
 
     def eventFilter(self, object, event):
+        if (event.type() == QEvent.KeyPress):
+            if event.modifiers() == Qt.ControlModifier and event.key() == Qt.Key_R:
+                self.txtRadicalsInput.setText("")
+                self.txtRadicalsInput.setFocus()
+        if object == self:
+            if event.type() == QEvent.WindowActivate:
+                self.txtOutputAggregation.setFocus()
         if object == self.txtOutputAggregation:
             if (event.type() == QEvent.KeyPress):
                 if event.modifiers() == Qt.ControlModifier and event.key() == Qt.Key_Down:
@@ -42,6 +49,11 @@ class MainWindow(QWidget):
                 if event.modifiers() == Qt.ControlModifier and event.key() == Qt.Key_Up:
                     self.cmbLanguage.setCurrentIndex((self.cmbLanguage.currentIndex() - 1) % self.cmbLanguage.count() )
                 return False
+        if object == self.lstKanjiList:
+            if (event.type() == QEvent.FocusIn):
+                self.lstKanjiList.setMaximumHeight(250)
+            if (event.type() == QEvent.FocusOut):
+                self.lstKanjiList.setMaximumHeight(30)
         # if I got here, it means it's an event I'll just let Qt handle in its default way
         return QObject.eventFilter(self, object, event)
 
@@ -51,23 +63,28 @@ class MainWindow(QWidget):
         self.cedictDictionary = cedict.CedictDictionary()
         self.kengdicDictionary = kengdic.KengdicDictionary()
         self.dict = self.edictDictionary
+        self.splitWords = []
     
         QWidget.__init__(self)
         self.setWindowTitle("Kanji lookup")
-        self.resize(500, 600)
+        self.resize(320, 1000)
+        self.move(1580, 40)
         self.setWindowIcon(QIcon("icon.png"))
+
+        
 
         self.historyWindow = HistoryWindow(self)
 
         self.txtRadicalsInput = QLineEdit(self)
         self.txtRadicalsInput.textChanged.connect(self.ontxtRadicalsTextChanged)
 
-        self.lstOutput = QListWidget(self)
-        self.lstOutput.setFlow(QListView.LeftToRight)
-        self.lstOutput.setWrapping(True)
-        self.lstOutput.setMaximumHeight(250)
-        self.lstOutput.itemActivated.connect(self.onlstOutputItemActivated)
-        self.lstOutput.setStyleSheet("QListWidget {font-size: 20px}")
+        self.lstKanjiList = QListWidget(self)
+        self.lstKanjiList.setFlow(QListView.LeftToRight)
+        self.lstKanjiList.setWrapping(True)
+        self.lstKanjiList.setMaximumHeight(30)
+        self.lstKanjiList.itemActivated.connect(self.onlstKanjiListItemActivated)
+        self.lstKanjiList.setStyleSheet("QListWidget {font-size: 20px}")
+        self.lstKanjiList.installEventFilter(self)
 
         self.txtOutputAggregation = QTextEdit(self)
         self.txtOutputAggregation.setStyleSheet("font-size: 20px")
@@ -79,10 +96,12 @@ class MainWindow(QWidget):
         self.txtOutputAggregation.cursorPositionChanged.connect(self.handleSelectionChangesOrCursorMovements)
         self.txtOutputAggregation.installEventFilter(self)
 
+        self.installEventFilter(self) # Gotta install this event here because I need txtOutputAggregation to exist
+
         self.btnSaveWord = QPushButton("Save word", self)
         self.btnSaveWord.clicked.connect(self.onbtnSaveWordClicked)
 
-        self.btnShowRadicals = QPushButton("Show radicals...", self)
+        self.btnShowRadicals = QPushButton("Radicals...", self)
         self.btnShowRadicals.clicked.connect(self.onbtnShowRadicalsClicked)
 
         self.btnShowHistory = QPushButton("History...", self)
@@ -91,14 +110,14 @@ class MainWindow(QWidget):
         self.btnSearchWord = QPushButton("Search...", self)
         self.btnSearchWord.clicked.connect(self.onbtnSearchWordClicked)
 
-        self.lblSplittedWordsList = QLabel(self)
-        self.lblSplittedWordsList.setStyleSheet("font-size: 20px")
-        self.lblSplittedWordsList.linkActivated.connect(self.onlblSplittedWordsListlinkActivated)
+        self.lblSplitWordsList = QLabel(self)
+        self.lblSplitWordsList.setStyleSheet("font-size: 20px")
+        self.lblSplitWordsList.linkActivated.connect(self.onlblSplitWordsListlinkActivated)
 
-        self.scrollAreaSplittedWordsList = QScrollArea(self)
-        self.scrollAreaSplittedWordsList.setWidget(self.lblSplittedWordsList)
-        self.scrollAreaSplittedWordsList.setWidgetResizable(True)
-        self.scrollAreaSplittedWordsList.setMaximumHeight(45)
+        self.scrollAreaSplitWordsList = QScrollArea(self)
+        self.scrollAreaSplitWordsList.setWidget(self.lblSplitWordsList)
+        self.scrollAreaSplitWordsList.setWidgetResizable(True)
+        self.scrollAreaSplitWordsList.setMaximumHeight(45)
 
         self.txtTranslations = QTextBrowser(self)
         self.txtTranslations.setReadOnly(True)
@@ -122,7 +141,7 @@ class MainWindow(QWidget):
                 
         self.chkAlwaysOnTop = QCheckBox("AOT", self)
         self.chkAlwaysOnTop.stateChanged.connect(self.onchkAlwaysOnTopStateChanged)
-        self.chkAlwaysOnTop.setCheckState(Qt.Unchecked)
+        self.chkAlwaysOnTop.setCheckState(Qt.Checked)
         
         self.chkListenToClipboard = QCheckBox("Listen to clipboard", self)
         self.chkListenToClipboard.setCheckState(Qt.Unchecked)
@@ -132,7 +151,7 @@ class MainWindow(QWidget):
 
         self.mainLayout = QVBoxLayout(self)
         self.mainLayout.addWidget(self.txtRadicalsInput)
-        self.mainLayout.addWidget(self.lstOutput)
+        self.mainLayout.addWidget(self.lstKanjiList)
 
         self.bottomLayout = QHBoxLayout()
         self.bottomLayout.addWidget(self.txtOutputAggregation)
@@ -144,17 +163,19 @@ class MainWindow(QWidget):
         self.bottomLayout.addLayout(self.buttonsLayout)
 
         self.mainLayout.addLayout(self.bottomLayout)
-        self.mainLayout.addWidget(self.scrollAreaSplittedWordsList)
+        self.mainLayout.addWidget(self.scrollAreaSplitWordsList)
 
         self.mainLayout.addWidget(self.txtTranslations)
 
-        self.strokeCountLayout = QHBoxLayout()
-        self.strokeCountLayout.addWidget(self.lblStrokeCount)
-        self.strokeCountLayout.addWidget(self.spnStrokeCount)
-        self.strokeCountLayout.addWidget(self.cmbLanguage)
-        self.strokeCountLayout.addWidget(self.chkAlwaysOnTop)
-        self.strokeCountLayout.addWidget(self.chkListenToClipboard)
-        self.mainLayout.addLayout(self.strokeCountLayout)
+        self.strokeCountLayout1 = QHBoxLayout()
+        self.strokeCountLayout1.addWidget(self.lblStrokeCount)
+        self.strokeCountLayout1.addWidget(self.spnStrokeCount)
+        self.strokeCountLayout1.addWidget(self.cmbLanguage)
+        self.strokeCountLayout2 = QHBoxLayout()
+        self.strokeCountLayout2.addWidget(self.chkAlwaysOnTop)
+        self.strokeCountLayout2.addWidget(self.chkListenToClipboard)
+        self.mainLayout.addLayout(self.strokeCountLayout1)
+        self.mainLayout.addLayout(self.strokeCountLayout2)
         self.lblStrokeCount.adjustSize()
 
         
@@ -167,7 +188,6 @@ class MainWindow(QWidget):
         # t.start()
         
     def clipboardChanged(self):
-        print("clipboardChanged()")
         if self.chkListenToClipboard.checkState() == Qt.Checked:
             self.txtOutputAggregation.setPlainText(QApplication.clipboard().text())
     
@@ -192,26 +212,26 @@ class MainWindow(QWidget):
         if self.spnStrokeCount.value() > 0:
             kanjis = list(filter(lambda x: kanjidic.getStrokeCount(x) == self.spnStrokeCount.value(), kanjis))
         
-        self.lstOutput.clear()
+        self.lstKanjiList.clear()
         if fullList:
-            self.lstOutput.addItems(kanjis)
+            self.lstKanjiList.addItems(kanjis)
         else:
-            self.lstOutput.addItems(kanjis[:100])
+            self.lstKanjiList.addItems(kanjis[:100])
             if len(kanjis) > 100:
-                self.lstOutput.addItem("...")
+                self.lstKanjiList.addItem("...")
         if len(kanjis) > 0:
-            self.lstOutput.item(0).setSelected(True)
+            self.lstKanjiList.item(0).setSelected(True)
             if not fullList:
                 # it's true when i click the "..." item, i want the scrollbar stay as it is
-                self.lstOutput.scrollToTop()
+                self.lstKanjiList.scrollToTop()
 
     def ontxtRadicalsTextChanged(self):
         self.populateList(False)
 
-    def onlstOutputItemActivated(self, item):
+    def onlstKanjiListItemActivated(self, item):
         if item.text() == "...":
             self.populateList(True)
-            self.lstOutput.item(100).setSelected(True)
+            self.lstKanjiList.item(100).setSelected(True)
         else:
             if (QApplication.keyboardModifiers() & Qt.ShiftModifier) == Qt.ShiftModifier:
                 self.txtOutputAggregation.setPlainText("")
@@ -280,27 +300,28 @@ class MainWindow(QWidget):
         f.write(text + "\n")
         f.close()
         QMessageBox.information(self, "saved", "saved")
+
+    def updateSplitWordsList(self):
+        if self.txtOutputAggregation.toPlainText() == "":
+            self.lblSplitWordsList.setText("")
+            return
+                
+        text = ""
+        # Relies on the fact that handleSelectionChangesOrCursorMovements() is called
+        # before ontxtOutputAggregationTextChanged()
+        for w in self.splitWords: 
+            text += "<a href='word'>word</a> ".replace("word", w)
+        self.lblSplitWordsList.setText(text)
         
     def ontxtOutputAggregationTextChanged(self):
+        # print(str(time.clock()), "self.ontxtOutputAggregationTextChanged() - inizio")
         self.historyWindow.addEntry(self.txtOutputAggregation.toPlainText())
         
-        input = self.txtOutputAggregation.toPlainText()
-        
-        if input == "":
+        self.updateSplitWordsList()
+
+        if self.txtOutputAggregation.toPlainText() == "":
             self.txtTranslations.setPlainText("")
-            self.lblSplittedWordsList.setText("")
-            return
         
-        # print(str(time.clock()), "words = self.dict.splitSentence(input)")
-        words = self.dict.splitSentence(input)
-        
-        # print(str(time.clock()), "text = ''")
-        text = ""
-        for w in words:
-            text += "<a href='word'>word</a> ".replace("word", w)
-        # print(str(time.clock()), "self.lblSplittedWordsList.setText(text)")
-        self.lblSplittedWordsList.setText(text)
-                
     def handleSelectionChangesOrCursorMovements(self):
         # print(str(time.clock()), "self.handleSelectionChangesOrCursorMovements() - inizio")
         if self.txtOutputAggregation.textCursor().hasSelection():
@@ -310,15 +331,16 @@ class MainWindow(QWidget):
             # all the extra whitespace between words, and weird things happen when the cursor's
             # between two words
             # merda = len(re.sub("\s*?", "", self.txtOutputAggregation.text()[:newPosition]))
+            self.splitWords = self.dict.splitSentence(self.txtOutputAggregation.toPlainText())
             i = 0
-            for w in self.dict.splitSentence(self.txtOutputAggregation.toPlainText()):
+            for w in self.splitWords:
                 if len(w) + i >= self.txtOutputAggregation.textCursor().position():
                     self.showTranslations(w)
                     return
                 else:
                     i += len(w)
         
-    def onlblSplittedWordsListlinkActivated(self, link):
+    def onlblSplitWordsListlinkActivated(self, link):
         self.showTranslations(link)
         
     def onLanguageChanged(self, checked):
@@ -333,6 +355,7 @@ class MainWindow(QWidget):
         self.ontxtOutputAggregationTextChanged()
         self.handleSelectionChangesOrCursorMovements()
         self.unsetCursor()
+        self.updateSplitWordsList()
         
     def onTxtTranslationsAnchorClicked(self, url):
         self.playMp3("datasets/chineseSounds/" + url.path() + ".mp3.wav")
