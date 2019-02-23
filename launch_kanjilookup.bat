@@ -1,1 +1,1 @@
-c:\Python34\python kanjilookup.py
+C:\Users\x\AppData\Local\Programs\Python\Python36\python kanjilookup.py
