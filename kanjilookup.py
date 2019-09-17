@@ -302,6 +302,8 @@ class MainWindow(QWidget):
         f.close()
         QMessageBox.information(self, "saved", "saved")
 
+    seenWords = set()
+
     def updateSplitWordsList(self):
         if self.txtOutputAggregation.toPlainText() == "":
             self.lblSplitWordsList.setText("")
@@ -312,6 +314,14 @@ class MainWindow(QWidget):
         # before ontxtOutputAggregationTextChanged()
         for w in self.splitWords: 
             text += "<a href='word'>word</a> ".replace("word", w)
+            currLanguage = self.cmbLanguage.itemData(self.cmbLanguage.currentIndex())
+            if currLanguage == "JAPANESE":
+                if w not in self.seenWords and w.strip() != "":
+                    self.seenWords.add(w)
+                    f = open("savedwords.txt", "a", encoding="utf8")
+                    f.write(w + "\n")
+                    f.close()
+
         self.lblSplitWordsList.setText(text)
         
     def ontxtOutputAggregationTextChanged(self):
